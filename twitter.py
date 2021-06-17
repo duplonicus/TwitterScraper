@@ -134,6 +134,11 @@ while True:
                     conn.commit()
                 except (Exception, psycopg2.DatabaseError) as error:
                     print(error)
+                    with open("twitter.log", "a") as log:
+                        sys.stdout = log 
+                        print("Database error: ", error, "\n")
+                        #Reset the standard output
+                        sys.stdout = original_stdout
                 finally:
                     if conn is not None:
                         conn.close()
