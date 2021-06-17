@@ -3,9 +3,7 @@ from config import config
 
 def create_tables():
     """ create tables in the PostgreSQL database"""
-    create_table = "CREATE TABLE elon (elon_pkey SERIAL PRIMARY KEY, tweet_id NUMERIC,            tweet_text TEXT, regex_result TEXT, regex_uppercase TEXT, profile_photo_url TEXT, profile_banner_url TEXT);"
-
-    #create_database = "CREATE DATABASE elon;"
+    create_table = "CREATE TABLE elon (elon_pkey SERIAL PRIMARY KEY, tweet_id NUMERIC, tweet_text TEXT, regex_result TEXT, regex_uppercase TEXT, profile_photo_url TEXT, profile_banner_url TEXT);"
 
     conn = None
     try:
@@ -26,8 +24,7 @@ def create_tables():
         print(error)
     finally:
         if conn is not None:
-            conn.close()
-
+            conn.close()        
 
 if __name__ == '__main__':
     create_tables()
