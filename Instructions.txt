@@ -1,4 +1,4 @@
-Instruction for Windows
+Instructions for Windows
 
 1. Install Python3
 
@@ -6,7 +6,7 @@ Instruction for Windows
 
 3. Run "pip install pytwitterscraper" "pip install psycopg2" and "pip install config"
 
-4. Create db.ini and fill it out with your datqabase connection info:
+4. Create db.ini and fill it out with your database connection info:
 [postgresql]
 host=
 database=
