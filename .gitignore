@@ -1,0 +1,9 @@
+__pycache__/
+db.ini
+dbtest.py
+insert.py
+start_scraper.ps1
+test.py
+tiktok.py
+twitter-android.py
+twitter.log
