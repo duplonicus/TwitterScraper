@@ -8,6 +8,7 @@ import sys                                  #Write to files
 import psycopg2                             #Library for postgreSQL functionality
 from config import config                   #Used to connect to DB with db.ini
 import argparse                             #Used to change elon to someone else if desired
+import datetime
 
 #Variables
 
@@ -41,6 +42,8 @@ new_tweet_id = None
 new_tweet_text = None
 #Keywords Elon has used
 keywords = "Crypto|crypto|BTC|btc|Bitcoin|bitcoin|DOGE|Doge|doge|💦|🚀|🌙|🌕|🌜|🌛|CUM|Cum|cum|Rocket|rocket|Moon|moon|Money|money|Economy|economy|Market|market"
+#Timestamp
+timestamp = datetime.datetime.now()
 #Iterator
 i = 1
 
@@ -74,6 +77,8 @@ while True:
 
     #Print results to console
     print("Iteration: ", i)
+    print("Timestamp: " + format(timestamp))
+    print("Twitter Handle: @" + twitter_handle)
     try:
         #Tweets
         print("Tweet ID: ", new_tweet_id)
@@ -100,7 +105,8 @@ while True:
         if new_tweet_id > last_tweet_id:
             with open("twitter.log", "a") as log:
                 sys.stdout = log 
-                print("Iteration: ", i)
+                print("Timestamp: " + format(timestamp))
+                print("Twitter Handle: @" + twitter_handle)
                 print("Tweet ID: ", new_tweet_id)
                 print("Tweet Text: ", new_tweet_text)
                 print("Regex Result: ", regex)
@@ -111,6 +117,7 @@ while True:
         if new_profile_url != profile_url:
             with open("twitter.log", "a") as log:
                 sys.stdout = log 
+                print("Twitter Handle: @" + twitter_handle)
                 print("Profile URL: ", new_profile_url, "\n")
                 #Reset the standard output
                 sys.stdout = original_stdout
@@ -118,6 +125,7 @@ while True:
         if new_profile_banner != profile_banner:
             with open("twitter.log", "a") as log:
                 sys.stdout = log 
+                print("Twitter Handle: @" + twitter_handle)
                 print("Banner URL: ", new_profile_banner, "\n")
                 #Reset the standard output
                 sys.stdout = original_stdout
