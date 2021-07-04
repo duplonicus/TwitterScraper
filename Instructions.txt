@@ -4,7 +4,7 @@ Instructions for Windows
 
 2. Install PostgreSQL and create a database
 
-3. Run "pip install pytwitterscraper" "pip install psycopg2" and "pip install config"
+3. Run "pip install -r requirement.txt"
 
 4. Create db.ini and fill it out with your database connection info:
 [postgresql]

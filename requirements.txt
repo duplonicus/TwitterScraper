@@ -1,0 +1,3 @@
+pytwitterscraper
+psycopg2
+config
