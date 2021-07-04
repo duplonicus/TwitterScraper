@@ -17,4 +17,6 @@ password=
 
 6. Run "python3 twitter.py username" to start scraping. If username is left blank, it defaults to elonmusk
 
+# Screenshot
+
 ![Screenshot](https://i.imgur.com/KvDBJRf.png)
