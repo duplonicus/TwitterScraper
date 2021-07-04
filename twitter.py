@@ -7,20 +7,31 @@ import winsound                             #Play Windows sounds
 import sys                                  #Write to files
 import psycopg2                             #Library for postgreSQL functionality
 from config import config                   #Used to connect to DB with db.ini
+import argparse                             #Used to change elon to someone else if desired
 
 #Variables
+
+#Parser
+parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
+parser.add_argument("username", nargs="?")
+args = parser.parse_args()
 #Save original standard output for logging
 original_stdout = sys.stdout
 #Create twitter scraper
 tw = TwitterScraper()
-#Elon's twitter ID and URL
-elon_id = 44196397
-elon_twitter_url = "https://twitter.com/elonmusk"
+#Twitter Handle from args or default
+try:
+    twitter_handle = args.username
+except:
+    twitter_handle = "elonmusk"
 #Get Elon's Twitter profile data
-profile = tw.get_profile(name="elonmusk")
+profile = tw.get_profile(name=twitter_handle)
 profile_dict = profile.__dict__
 profile_url = profile_dict["profileurl"]
 profile_banner = profile_dict["bannerurl"]
+#Elon's twitter ID and URL
+elon_id = profile_dict["id"]
+elon_twitter_url = "https://twitter.com/" + twitter_handle
 #Get Elon's last tweet data
 last_tweet = tw.get_tweets(elon_id, count=1)
 last_tweet_contents = last_tweet.contents
@@ -37,7 +48,7 @@ i = 1
 while True:
     try:
         #Get new profile data
-        new_profile = tw.get_profile(name="elonmusk")
+        new_profile = tw.get_profile(name=twitter_handle)
         new_profile_dict = new_profile.__dict__
         new_profile_url = new_profile_dict["profileurl"]
         new_profile_banner = new_profile_dict["bannerurl"]
@@ -115,38 +126,36 @@ while True:
 
     #Update elon table in elonscraper database
     if new_tweet_id > last_tweet_id or new_profile_url != profile_url or new_profile_banner != profile_banner:
-        try:
-            def new_row():
-                row = "INSERT INTO elon (tweet_id, tweet_text, regex_result, regex_uppercase, profile_photo_url, profile_banner_url) VALUES(" + str(new_tweet_id) + ", '" + new_tweet_text + "', '" + regex + "', '" + regex_uppercase + "', '" + new_profile_url + "', '" + new_profile_banner + "');"
+        def new_row():
+            row = "INSERT INTO elon (tweet_id, tweet_text, regex_result, regex_uppercase, profile_photo_url, profile_banner_url) VALUES(" + str(new_tweet_id) + ", '" + new_tweet_text + "', '" + regex + "', '" + regex_uppercase + "', '" + new_profile_url + "', '" + new_profile_banner + "');"
 
-                conn = None
-                try:
-                    # read the connection parameters
-                    params = config()
-                    # connect to the PostgreSQL server
-                    conn = psycopg2.connect(**params)
-                    cur = conn.cursor()
-                    # create new row
-                    cur.execute(row)
-                    # close communication with the PostgreSQL database server
-                    cur.close()
-                    # commit the changes
-                    conn.commit()
-                except (Exception, psycopg2.DatabaseError) as error:
-                    print(error)
-                    with open("twitter.log", "a") as log:
-                        sys.stdout = log 
-                        print("Database error: ", error, "\n")
-                        #Reset the standard output
-                        sys.stdout = original_stdout
-                finally:
-                    if conn is not None:
-                        conn.close()
+            conn = None
+            try:
+                # read the connection parameters
+                params = config()
+                # connect to the PostgreSQL server
+                conn = psycopg2.connect(**params)
+                cur = conn.cursor()
+                # create new row
+                cur.execute(row)
+                # close communication with the PostgreSQL database server
+                cur.close()
+                # commit the changes
+                conn.commit()
+            except (Exception, psycopg2.DatabaseError) as error:
+                print(error)
+                with open("twitter.log", "a") as log:
+                    sys.stdout = log 
+                    print("Database error: ", error, "\n")
+                    #Reset the standard output
+                    sys.stdout = original_stdout
+            finally:
+                if conn is not None:
+                    conn.close()
 
-            if __name__ == '__main__':
-                new_row()
-        except:
-            print("Database error")
+        if __name__ == '__main__':
+            new_row()
+        
     
     #Play sound if keyword found
     if re.search(keywords, new_tweet_text) and new_tweet_id > last_tweet_id:
@@ -168,7 +177,7 @@ while True:
         profile_banner = new_profile_banner
 
     #Update iteration
-    i = i+1
+    i += 1
         
     #Wait 5 seconds
     time.sleep(5)
