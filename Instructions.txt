@@ -15,4 +15,4 @@ password=
 
 5. Run "python3 create_table.py"
 
-6. Run "python3 twitter.py" to start scraping
+6. Run "python3 twitter.py username" to start scraping. If username is left blank, it defaults to elonmusk
