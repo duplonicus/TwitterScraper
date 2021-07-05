@@ -5,7 +5,7 @@ import time                                 # Wait
 import re                                   # Regex
 import winsound                             # Play Windows sounds
 import sys                                  # Write to files
-import psycopg2                             # Library for postgreSQL functionality
+import psycopg2                             # PostgreSQL functionality
 from config import config                   # Connect to DB with db.ini
 import argparse                             # Change elon to someone else if desired
 import datetime                             # Timestamp
@@ -67,7 +67,7 @@ while True:
             newest_tweet = 0
         new_tweet_text = new_tweet_contents[newest_tweet]["text"]
         # Compare tweet
-        if new_tweet_id != last_tweet_id and type(new_tweet_id) == int and new_tweet_id > last_tweet_id:
+        if new_tweet_id != last_tweet_id and new_tweet_id > last_tweet_id:
             webbrowser.open(twitter_url, new=1)
         # Compare profile URL
         if new_profile_url != profile_url:
@@ -137,7 +137,7 @@ while True:
     ## Update elon table in elonscraper database
     if new_tweet_id > last_tweet_id or new_profile_url != profile_url or new_profile_banner != profile_banner:
         def new_row():
-            row = "INSERT INTO elon (tweet_id, tweet_text, regex_result, regex_uppercase, profile_photo_url, profile_banner_url) VALUES(" + format(new_tweet_id) + ", '" + new_tweet_text + "', '" + format(regex) + "', '" + format(regex_uppercase) + "', '" + new_profile_url + "', '" + new_profile_banner + "');"
+            row = "INSERT INTO twitter (twitter_handle, tweet_id, tweet_text, regex_result, regex_uppercase, profile_photo_url, profile_banner_url) VALUES(" + twitter_handle + ", '" + format(new_tweet_id) + ", '" + new_tweet_text + "', '" + format(regex) + "', '" + format(regex_uppercase) + "', '" + new_profile_url + "', '" + new_profile_banner + "');"
             conn = None
             try:
                 #  read the connection parameters
