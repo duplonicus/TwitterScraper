@@ -13,22 +13,28 @@ import datetime                             # Timestamp
 ## Variables
 # Save original standard output for logging
 original_stdout = sys.stdout
+
 # Argument parser
 parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
 parser.add_argument("username", nargs="?", default="elonmusk")
 args = parser.parse_args()
+
 # Get Twitter handle from argument or default to Elon Musk
 twitter_handle = args.username
+
 # Create twitter scraper object
 tw = TwitterScraper()
+
 # Get Twitter profile data
 profile = tw.get_profile(name=twitter_handle)
 profile_dict = profile.__dict__
 profile_url = profile_dict["profileurl"]
 profile_banner = profile_dict["bannerurl"]
+
 # Get Twitter ID and URL
 twitter_id = profile_dict["id"]
 twitter_url = "https://twitter.com/" + twitter_handle
+
 # Get last 2 tweets and compare to filter pinned tweets
 last_tweet = tw.get_tweets(twitter_id, count=2)
 last_tweet_contents = last_tweet.contents
@@ -36,13 +42,17 @@ last_tweet_id = last_tweet_contents[0]["id"]
 last_tweet_id_2 = last_tweet_contents[1]["id"]
 if last_tweet_id_2 > last_tweet_id:
     last_tweet_id = last_tweet_id_2
+
 # Store empty new tweet ID and text strings to avoid errors
 new_tweet_id = None
 new_tweet_text = None
+
 # Keywords
 keywords = "Crypto|crypto|BTC|btc|Bitcoin|bitcoin|DOGE|Doge|doge|💦|🚀|🌙|🌕|🌜|🌛|CUM|Cum|cum|Rocket|rocket|Shib|shib|Moon|moon|Money|money|Economy|economy|Market|market"
+
 # Timestamp
-timestamp = datetime.datetime.now()
+timestamp = format(datetime.datetime.now())
+
 # Iterator
 i = 1
 
@@ -80,7 +90,7 @@ while True:
 
     ## Print results to console
     print("Iteration: ", i)
-    print("Timestamp: " + format(timestamp))
+    print("Timestamp: " + timestamp)
     print("Twitter Handle: @" + twitter_handle)
     # Tweets
     print("Tweet ID: ", new_tweet_id)
@@ -105,7 +115,7 @@ while True:
         if new_tweet_id > last_tweet_id:
             with open("twitter.log", "a") as log:
                 sys.stdout = log 
-                print("Timestamp: " + format(timestamp))
+                print("Timestamp: " + timestamp)
                 print("Twitter Handle: @" + twitter_handle)
                 print("Tweet ID: ", new_tweet_id)
                 print("Tweet Text: ", new_tweet_text)
@@ -117,7 +127,7 @@ while True:
         if new_profile_url != profile_url:
             with open("twitter.log", "a") as log:
                 sys.stdout = log 
-                print("Timestamp: " + format(timestamp))
+                print("Timestamp: " + timestamp)
                 print("Twitter Handle: @" + twitter_handle)
                 print("Profile URL: ", new_profile_url, "\n")
                 # Reset the standard output
@@ -126,7 +136,7 @@ while True:
         if new_profile_banner != profile_banner:
             with open("twitter.log", "a") as log:
                 sys.stdout = log 
-                print("Timestamp: " + format(timestamp))
+                print("Timestamp: " + timestamp)
                 print("Twitter Handle: @" + twitter_handle)
                 print("Banner URL: ", new_profile_banner, "\n")
                 # Reset the standard output
@@ -137,7 +147,7 @@ while True:
     ## Update elon table in elonscraper database
     if new_tweet_id > last_tweet_id or new_profile_url != profile_url or new_profile_banner != profile_banner:
         def new_row():
-            row = "INSERT INTO twitter (twitter_handle, tweet_id, tweet_text, regex_result, regex_uppercase, profile_photo_url, profile_banner_url) VALUES(" + twitter_handle + ", '" + format(new_tweet_id) + ", '" + new_tweet_text + "', '" + format(regex) + "', '" + format(regex_uppercase) + "', '" + new_profile_url + "', '" + new_profile_banner + "');"
+            row = "INSERT INTO twitter (twitter_handle, tweet_id, tweet_text, regex_result, regex_uppercase, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + new_tweet_text + "', '" + format(regex) + "', '" + format(regex_uppercase) + "', '" + new_profile_url + "', '" + new_profile_banner +"', '" + timestamp + "');"
             conn = None
             try:
                 #  read the connection parameters
