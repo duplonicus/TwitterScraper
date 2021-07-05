@@ -1,4 +1,4 @@
-# Libraries
+# Modules
 from pytwitterscraper import TwitterScraper # Twitter scraper
 import webbrowser                           # Web browser
 import time                                 # Wait
@@ -19,7 +19,7 @@ parser.add_argument("username", nargs="?", default="elonmusk")
 args = parser.parse_args()
 # Get Twitter handle from argument or default to Elon Musk
 twitter_handle = args.username
-# Create twitter scraper
+# Create twitter scraper object
 tw = TwitterScraper()
 # Get Twitter profile data
 profile = tw.get_profile(name=twitter_handle)
@@ -29,10 +29,13 @@ profile_banner = profile_dict["bannerurl"]
 # Get Twitter ID and URL
 twitter_id = profile_dict["id"]
 twitter_url = "https://twitter.com/" + twitter_handle
-# Get last tweet data
-last_tweet = tw.get_tweets(twitter_id, count=1)
+# Get last 2 tweets data and compare to filter pinned tweets
+last_tweet = tw.get_tweets(twitter_id, count=2)
 last_tweet_contents = last_tweet.contents
 last_tweet_id = last_tweet_contents[0]["id"]
+last_tweet_id_2 = last_tweet_contents[1]["id"]
+if last_tweet_id_2 > last_tweet_id:
+    last_tweet_id = last_tweet_id_2 
 # Store empty new tweet ID and text strings to avoid errors
 new_tweet_id = None
 new_tweet_text = None
@@ -55,10 +58,14 @@ while True:
         print("Bad profile \n")
     try:
         # Get new tweet data
-        new_tweet = tw.get_tweets(twitter_id, count=1)
+        new_tweet = tw.get_tweets(twitter_id, count=2)
         new_tweet_contents = new_tweet.contents
-        new_tweet_id = new_tweet_contents[0]["id"]
-        new_tweet_text = new_tweet_contents[0]["text"]
+        new_tweet_id = new_tweet_contents[1]["id"]
+        new_tweet_id_2 = new_tweet_contents[0]["id"]
+        if new_tweet_id_2 > new_tweet_id:
+            new_tweet_id = new_tweet_id_2
+            newest_tweet = 0
+        new_tweet_text = new_tweet_contents[newest_tweet]["text"]
         # Compare tweet
         if new_tweet_id != last_tweet_id and type(new_tweet_id) == int and new_tweet_id > last_tweet_id:
             webbrowser.open(twitter_url, new=1)
@@ -183,4 +190,4 @@ while True:
     i += 1
         
     # Wait 5 seconds
-    time.sleep(5)
+    time.sleep(5) 
