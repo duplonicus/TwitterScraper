@@ -6,47 +6,47 @@ import re                                   # Regex
 import winsound                             # Play Windows sounds
 import sys                                  # Write to files
 import psycopg2                             # Library for postgreSQL functionality
-from config import config                   # Used to connect to DB with db.ini
-import argparse                             # Used to change elon to someone else if desired
-import datetime
+from config import config                   # Connect to DB with db.ini
+import argparse                             # Change elon to someone else if desired
+import datetime                             # Timestamp
 
 ## Variables
+# Save original standard output for logging
+original_stdout = sys.stdout
 # Parser
 parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
 parser.add_argument("username", nargs="?")
 args = parser.parse_args()
-# Save original standard output for logging
-original_stdout = sys.stdout
-# Create twitter scraper
-tw = TwitterScraper()
-# Twitter Handle from args or default
+# Get Twitter handle from argument or default to Elon Musk
 try:
     twitter_handle = args.username
 except:
     twitter_handle = "elonmusk"
-# Get Elon's Twitter profile data
+# Create twitter scraper
+tw = TwitterScraper()
+# Get Twitter profile data
 profile = tw.get_profile(name=twitter_handle)
 profile_dict = profile.__dict__
 profile_url = profile_dict["profileurl"]
 profile_banner = profile_dict["bannerurl"]
-# Elon's twitter ID and URL
+# Get Twitter ID and URL
 twitter_id = profile_dict["id"]
 twitter_url = "https://twitter.com/" + twitter_handle
-# Get Elon's last tweet data
+# Get last tweet data
 last_tweet = tw.get_tweets(twitter_id, count=1)
 last_tweet_contents = last_tweet.contents
 last_tweet_id = last_tweet_contents[0]["id"]
 # Store empty new tweet ID and text strings to avoid errors
 new_tweet_id = None
 new_tweet_text = None
-# Keywords Elon has used
+# Keywords
 keywords = "Crypto|crypto|BTC|btc|Bitcoin|bitcoin|DOGE|Doge|doge|💦|🚀|🌙|🌕|🌜|🌛|CUM|Cum|cum|Rocket|rocket|Moon|moon|Money|money|Economy|economy|Market|market"
 # Timestamp
 timestamp = datetime.datetime.now()
 # Iterator
 i = 1
 
-## Scrape Elon's Twitter and open in browser if new tweet, profile photo changed, or banner changed
+## Scrape Twitter and open in browser if new tweet, profile photo changed, or banner changed
 while True:
     try:
         # Get new profile data
