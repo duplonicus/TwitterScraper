@@ -1,12 +1,14 @@
 # Info
 
-This script was originally created to gain an advantage in crypto trading but can be used for other purposes. For example, logging Michael Burry's cryptic tweets before he deletes his twitter account. It loops every 5 seconds and checks the last tweet of the specified account for keywords, photo changes, and banner changes. If a keyword is detected or an image changes it plays a sound. It opens the default browser to new tweets and image changes as well. Results are displayed in the console and logged to twitter.log and a PostgreSQL database. 
+This script was originally created to gain an advantage in crypto trading but can be used for other purposes. For example, logging Michael Burry's cryptic tweets before he deletes his twitter account. It loops every 5 seconds and checks the last tweet of the specified account for keywords, photo changes, and banner changes. If a keyword is detected or an image changes, it plays a sound. It opens a new tab in the default browser to new tweets and images as well. Results are displayed in the console, logged to twitter.log, and a PostgreSQL database (optional).
 
 # Setup for Windows
 
 1. Install Python3
 
 2. Run "pip install -r requirement.txt"
+
+Complete the rest of the steps if a database is desired
 
 3. Install PostgreSQL and create a database
 
