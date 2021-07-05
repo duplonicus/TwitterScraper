@@ -13,7 +13,7 @@ import datetime                             # Timestamp
 ## Variables
 # Save original standard output for logging
 original_stdout = sys.stdout
-# Parser
+# Argument parser
 parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
 parser.add_argument("username", nargs="?")
 args = parser.parse_args()
