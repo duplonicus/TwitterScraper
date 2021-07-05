@@ -29,13 +29,13 @@ profile_banner = profile_dict["bannerurl"]
 # Get Twitter ID and URL
 twitter_id = profile_dict["id"]
 twitter_url = "https://twitter.com/" + twitter_handle
-# Get last 2 tweets data and compare to filter pinned tweets
+# Get last 2 tweets and compare to filter pinned tweets
 last_tweet = tw.get_tweets(twitter_id, count=2)
 last_tweet_contents = last_tweet.contents
 last_tweet_id = last_tweet_contents[0]["id"]
 last_tweet_id_2 = last_tweet_contents[1]["id"]
 if last_tweet_id_2 > last_tweet_id:
-    last_tweet_id = last_tweet_id_2 
+    last_tweet_id = last_tweet_id_2
 # Store empty new tweet ID and text strings to avoid errors
 new_tweet_id = None
 new_tweet_text = None
@@ -82,12 +82,9 @@ while True:
     print("Iteration: ", i)
     print("Timestamp: " + format(timestamp))
     print("Twitter Handle: @" + twitter_handle)
-    try:
-        # Tweets
-        print("Tweet ID: ", new_tweet_id)
-        print("Tweet Text: ", new_tweet_text)        
-    except:
-        print("Nothing to print \n")
+    # Tweets
+    print("Tweet ID: ", new_tweet_id)
+    print("Tweet Text: ", new_tweet_text)        
     try:
         # Regular expression for keywords
         regex = re.search(keywords, new_tweet_text)
@@ -168,8 +165,11 @@ while True:
             new_row()        
     
     ## Play sound if keyword found
-    if re.search(keywords, new_tweet_text) and new_tweet_id > last_tweet_id:
-        winsound.PlaySound("sound2.wav", winsound.SND_ASYNC)
+    try:
+        if re.search(keywords, new_tweet_text) and new_tweet_id > last_tweet_id:
+            winsound.PlaySound("sound2.wav", winsound.SND_ASYNC)
+    except:
+        pass
     ## Play sound if profile URL changes, or banner changes
     if new_profile_url != profile_url or new_profile_banner != profile_banner:
         winsound.PlaySound("sound2.wav", winsound.SND_ASYNC)
