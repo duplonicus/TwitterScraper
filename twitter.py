@@ -15,13 +15,10 @@ import datetime                             # Timestamp
 original_stdout = sys.stdout
 # Argument parser
 parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
-parser.add_argument("username", nargs="?")
+parser.add_argument("username", nargs="?", default="elonmusk")
 args = parser.parse_args()
 # Get Twitter handle from argument or default to Elon Musk
-try:
-    twitter_handle = args.username
-except:
-    twitter_handle = "elonmusk"
+twitter_handle = args.username
 # Create twitter scraper
 tw = TwitterScraper()
 # Get Twitter profile data
@@ -40,7 +37,7 @@ last_tweet_id = last_tweet_contents[0]["id"]
 new_tweet_id = None
 new_tweet_text = None
 # Keywords
-keywords = "Crypto|crypto|BTC|btc|Bitcoin|bitcoin|DOGE|Doge|doge|💦|🚀|🌙|🌕|🌜|🌛|CUM|Cum|cum|Rocket|rocket|Moon|moon|Money|money|Economy|economy|Market|market"
+keywords = "Crypto|crypto|BTC|btc|Bitcoin|bitcoin|DOGE|Doge|doge|💦|🚀|🌙|🌕|🌜|🌛|CUM|Cum|cum|Rocket|rocket|Shib|shib|Moon|moon|Money|money|Economy|economy|Market|market"
 # Timestamp
 timestamp = datetime.datetime.now()
 # Iterator
