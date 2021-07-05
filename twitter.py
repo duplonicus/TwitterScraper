@@ -30,10 +30,10 @@ profile_dict = profile.__dict__
 profile_url = profile_dict["profileurl"]
 profile_banner = profile_dict["bannerurl"]
 # Elon's twitter ID and URL
-elon_id = profile_dict["id"]
-elon_twitter_url = "https://twitter.com/" + twitter_handle
+twitter_id = profile_dict["id"]
+twitter_url = "https://twitter.com/" + twitter_handle
 # Get Elon's last tweet data
-last_tweet = tw.get_tweets(elon_id, count=1)
+last_tweet = tw.get_tweets(twitter_id, count=1)
 last_tweet_contents = last_tweet.contents
 last_tweet_id = last_tweet_contents[0]["id"]
 # Store empty new tweet ID and text strings to avoid errors
@@ -58,13 +58,13 @@ while True:
         print("Bad profile \n")
     try:
         # Get new tweet data
-        new_tweet = tw.get_tweets(elon_id, count=1)
+        new_tweet = tw.get_tweets(twitter_id, count=1)
         new_tweet_contents = new_tweet.contents
         new_tweet_id = new_tweet_contents[0]["id"]
         new_tweet_text = new_tweet_contents[0]["text"]
         # Compare tweet
         if new_tweet_id != last_tweet_id and type(new_tweet_id) == int and new_tweet_id > last_tweet_id:
-            webbrowser.open(elon_twitter_url, new=1)
+            webbrowser.open(twitter_url, new=1)
         # Compare profile URL
         if new_profile_url != profile_url:
             webbrowser.open(new_profile_url, new=1) 
