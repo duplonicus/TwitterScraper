@@ -12,7 +12,7 @@ Complete the rest of the steps if a database is desired
 
 3. Install PostgreSQL and create a database
 
-4. Rename new_db.ini to db.ini and fill it out with your database connection info
+4. Rename new_db.ini to db.ini and fill in the database connection info
 
 5. Run "python3 create_table.py"
 
@@ -20,10 +20,10 @@ Complete the rest of the steps if a database is desired
 
 Run "python3 twitter.py" to scrape Elon Musk
 
-Run "python3 twitter.py username" to scrape someone else
+Run "python3 twitter.py username" to scrape someone else.
 Example: "python3 twitter.py michaeljburry"
 
-The keywords variable can be modified within twitter.py and are seperated by the | symbol
+The keywords can be modified within twitter.py and are seperated by the | symbol
 
 # Screenshot
 
