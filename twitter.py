@@ -72,8 +72,8 @@ def format_regex(r):
     return r
 
 # Make tweet URL
-def make_url(twitter_handle, tweet_id):
-    url = "https://twitter.com/" + twitter_handle + "/status/" + format(tweet_id)
+def make_url():
+    url = "https://twitter.com/" + twitter_handle + "/status/" + format(new_tweet_id)
     return url
 
 ## Scrape Twitter and open in browser if new tweet, profile photo changed, or banner changed ##
@@ -129,7 +129,7 @@ while True:
         print("Upper Case:", regex_uppercase)
     except:
         print("Regex error")
-    print("Tweet URL:", make_url(twitter_handle, new_tweet_id), "\n")
+    print("Tweet URL:", make_url(), "\n")
 
     ## Print results to log if new tweet, profile URL changed, or banner changed
     try:
@@ -143,7 +143,7 @@ while True:
                 print("Tweet Text:", new_tweet_text)
                 print("Keywords:", regex)
                 print("Upper Case:", regex_uppercase)
-                print("Tweet URL:", make_url(twitter_handle, new_tweet_id), "\n")
+                print("Tweet URL:", make_url(), "\n")
                 #  Reset the standard output
                 sys.stdout = original_stdout 
         # Photo
@@ -170,7 +170,7 @@ while True:
     ## Update elon table in elonscraper database
     if new_tweet_id > last_tweet_id or new_profile_url != profile_url or new_profile_banner != profile_banner:
         def new_row():
-            row = "INSERT INTO twitter (twitter_handle, tweet_id, tweet_text, tweet_url, keywords, uppercase, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + new_tweet_text + "', '" + format(regex) + "', '" + regex_uppercase + "', '" + make_url(username, new_tweet_id) + "', '" + new_profile_url + "', '" + new_profile_banner +"', '" + timestamp + "');"
+            row = "INSERT INTO twitter (twitter_handle, tweet_id, tweet_text, tweet_url, keywords, uppercase, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + new_tweet_text + "', '" + format(regex) + "', '" + regex_uppercase + "', '" + make_url() + "', '" + new_profile_url + "', '" + new_profile_banner +"', '" + timestamp + "');"
             conn = None
             try:
                 #  read the connection parameters
