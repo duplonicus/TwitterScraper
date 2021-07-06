@@ -3,7 +3,7 @@ from config import config
 
 def create_tables():
     """ create tables in the PostgreSQL database"""
-    create_table = "CREATE TABLE twitter (twitter_pkey SERIAL PRIMARY KEY, twitter_handle TEXT, tweet_id NUMERIC, tweet_text TEXT, regex_result TEXT, regex_uppercase TEXT, profile_photo_url TEXT, profile_banner_url TEXT, timestamp TEXT);"
+    create_table = "CREATE TABLE twitter (twitter_pkey SERIAL PRIMARY KEY, twitter_handle TEXT, tweet_id NUMERIC, tweet_text TEXT, keywords TEXT, uppercase TEXT, tweet_url TEXT, profile_photo_url TEXT, profile_banner_url TEXT, timestamp TEXT);"
 
     conn = None
     try:
