@@ -1,5 +1,5 @@
 # TODO check latest entry in DB and add last tweet to log and DB if not present
-# TODO sentement analysis
+# TODO sentiment analysis
 
 ## Modules ##
 from pytwitterscraper import TwitterScraper # Twitter scraper no API required
@@ -113,7 +113,7 @@ while True:
     except:
         print("Bad tweet \n")
 
-    ## Print results to console
+    ## Print results to console ##
     print("Iteration:", i)
     print("Timestamp:", timestamp)
     print("Twitter Handle: @" + twitter_handle)
@@ -134,7 +134,7 @@ while True:
         print("Regex error")
     print("Tweet URL:", make_url(), "\n")
 
-    ## Print results to log if new tweet, profile URL changed, or banner changed
+    ## Print results to log if new tweet, profile URL changed, or banner changed ##
     try:
         # Tweets
         if new_tweet_id > last_tweet_id:
@@ -170,7 +170,7 @@ while True:
     except:
         print("Log error \n")
 
-    ## Update elon table in elonscraper database
+    ## Update elon table in elonscraper database ##
     if new_tweet_id > last_tweet_id or new_profile_url != profile_url or new_profile_banner != profile_banner:
         def new_row():
             row = "INSERT INTO twitter (twitter_handle, tweet_id, tweet_text, tweet_url, keywords, uppercase, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + new_tweet_text + "', '" + format(regex) + "', '" + regex_uppercase + "', '" + make_url() + "', '" + new_profile_url + "', '" + new_profile_banner +"', '" + timestamp + "');"
@@ -200,21 +200,18 @@ while True:
         if __name__ == '__main__':
             new_row()        
     
-    ## Play sound if keyword found
+    ## Play sound if keyword found or image changed ##
     try:
-        if re.search(keywords, new_tweet_text) and new_tweet_id > last_tweet_id:
+        if re.search(keywords, new_tweet_text) and new_tweet_id > last_tweet_id or new_profile_url != profile_url or new_profile_banner != profile_banner:
             winsound.PlaySound("sound2.wav", winsound.SND_ASYNC)
     except:
         pass
-    ## Play sound if profile URL changes, or banner changes
-    if new_profile_url != profile_url or new_profile_banner != profile_banner:
-        winsound.PlaySound("sound2.wav", winsound.SND_ASYNC)
         
     # Feeling brave? Add exchange API code here
     # if re.search("DOGE|Doge|doge",new_tweet_text) and new_tweet_id > last_tweet_id:
     # if re.search("BTC|DOGE|btc|Bitcoin|bitcoin",new_tweet_text) and new_tweet_id > last_tweet_id:
 
-    # Update tweet ID, profile URL, and banner URL
+    ## Update tweet ID, profile URL, and banner URL ##
     if new_tweet_id > last_tweet_id:
         last_tweet_id = new_tweet_id
     if new_profile_url != profile_url:
@@ -222,8 +219,8 @@ while True:
     if new_profile_banner != profile_banner:
         profile_banner = new_profile_banner
 
-    # Update iterator
+    ##  Update iterator ##
     i += 1
         
-    # Wait 5 seconds
+    ## Wait 5 seconds ##
     time.sleep(5) 
