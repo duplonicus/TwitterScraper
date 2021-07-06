@@ -1,3 +1,4 @@
+# TODO consolidate more code into functions
 # TODO check latest entry in DB and add last tweet to log and DB if not present
 # TODO sentiment analysis
 
@@ -147,7 +148,7 @@ while True:
                 print("Keywords:", regex)
                 print("Upper Case:", regex_uppercase)
                 print("Tweet URL:", make_url(), "\n")
-                #  Reset the standard output
+                # Reset the standard output
                 sys.stdout = original_stdout 
         # Photo
         if new_profile_url != profile_url:
@@ -170,22 +171,22 @@ while True:
     except:
         print("Log error \n")
 
-    ## Update elon table in elonscraper database ##
+    ## Update twitter table in elonscraper database ##
     if new_tweet_id > last_tweet_id or new_profile_url != profile_url or new_profile_banner != profile_banner:
         def new_row():
             row = "INSERT INTO twitter (twitter_handle, tweet_id, tweet_text, tweet_url, keywords, uppercase, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + new_tweet_text + "', '" + format(regex) + "', '" + regex_uppercase + "', '" + make_url() + "', '" + new_profile_url + "', '" + new_profile_banner +"', '" + timestamp + "');"
             conn = None
             try:
-                #  read the connection parameters
+                # Read the connection parameters
                 params = config()
-                #  connect to the PostgreSQL server
+                # Connect to the PostgreSQL server
                 conn = psycopg2.connect(**params)
                 cur = conn.cursor()
-                #  create new row
+                # Create new row
                 cur.execute(row)
-                #  close communication with the PostgreSQL database server
+                # Close communication with the PostgreSQL database server
                 cur.close()
-                #  commit the changes
+                # Commit the changes
                 conn.commit()
             except (Exception, psycopg2.DatabaseError) as error:
                 print(error)
