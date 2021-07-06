@@ -1,12 +1,15 @@
+# TODO check latest entry in DB and add last tweet to log and DB if not present
+# TODO sentement analysis
+
 ## Modules ##
-from pytwitterscraper import TwitterScraper # Twitter scraper
+from pytwitterscraper import TwitterScraper # Twitter scraper no API required
 import webbrowser                           # Web browser
 import time                                 # Wait
 import re                                   # Regex
 import winsound                             # Play Windows sounds
 import sys                                  # Write to files
 import psycopg2                             # PostgreSQL functionality
-from config import config                   # Connect to DB with db.ini
+from config import config                   # Read db.ini
 import argparse                             # Change elon to someone else if desired
 import datetime                             # Timestamp
 
