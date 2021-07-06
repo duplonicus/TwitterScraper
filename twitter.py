@@ -1,4 +1,4 @@
-# Modules
+## Modules ##
 from pytwitterscraper import TwitterScraper # Twitter scraper
 import webbrowser                           # Web browser
 import time                                 # Wait
@@ -10,7 +10,7 @@ from config import config                   # Connect to DB with db.ini
 import argparse                             # Change elon to someone else if desired
 import datetime                             # Timestamp
 
-## Variables
+## Variables ##
 
 # Save original standard output for logging
 original_stdout = sys.stdout
@@ -57,7 +57,7 @@ timestamp = format(datetime.datetime.now())
 # Iterator
 i = 1
 
-## Functions
+## Functions ##
 
 # Convert a list to a string  
 def listToString(s):     
@@ -71,7 +71,12 @@ def format_regex(r):
     r.replace("\'", "").replace(" ", "").replace("[", "").replace("]", "").replace(",", "")
     return r
 
-## Scrape Twitter and open in browser if new tweet, profile photo changed, or banner changed
+# Make tweet URL
+def make_url(username, tweet_id):
+    url = "https://twitter.com/" + username + "/status/" + format(tweet_id)
+    return url
+
+## Scrape Twitter and open in browser if new tweet, profile photo changed, or banner changed ##
 while True:
     try:
         # Get new profile data
@@ -82,17 +87,18 @@ while True:
     except:
         print("Bad profile \n")
     try:
-        # Get new tweet data
+        # Get 2 latest tweets and compare to filter a pinned
         new_tweet = tw.get_tweets(twitter_id, count=2)
         new_tweet_contents = new_tweet.contents
         new_tweet_id = new_tweet_contents[1]["id"]
         new_tweet_id_2 = new_tweet_contents[0]["id"]
         if new_tweet_id_2 > new_tweet_id:
             newest_tweet = 0
+            new_tweet_id = new_tweet_id_2
         else:
             newest_tweet = 1
         new_tweet_text = new_tweet_contents[newest_tweet]["text"]
-        # Compare tweet
+        # Compare new tweet to last tweet
         if new_tweet_id != last_tweet_id and new_tweet_id > last_tweet_id:
             webbrowser.open(twitter_url, new=1)
         # Compare profile URL
@@ -106,25 +112,23 @@ while True:
 
     ## Print results to console
     print("Iteration: ", i)
-    print("Timestamp: " + timestamp)
-    print("Twitter Handle: @" + twitter_handle)
+    print("Timestamp: " , timestamp)
+    print("Twitter Handle: @" , twitter_handle)
     # Tweets
     print("Tweet ID: ", new_tweet_id)
     print("Tweet Text: ", new_tweet_text)        
     try:
         # Regular expression for keywords
         regex = re.search(keywords, new_tweet_text)
-        print("Regex Result: ", regex)
+        print("Keywords: ", regex)
         # Regular expression for uppercase characters
         regex_uppercase_pattern = ['[A-Z]+']
         for p in regex_uppercase_pattern:
             regex_uppercase = re.findall(p, new_tweet_text)
         regex_uppercase = format_regex(listToString(re.findall(p, new_tweet_text)))
-        print("Upper Case: ", regex_uppercase)
+        print("Upper Case: ", regex_uppercase, "\n")
     except:
         print("Regex error")
-    # Photo
-    print("Profile URL: ", new_profile_url, "\n")
 
     ## Print results to log if new tweet, profile URL changed, or banner changed
     try:
@@ -132,12 +136,13 @@ while True:
         if new_tweet_id > last_tweet_id:
             with open("twitter.log", "a") as log:
                 sys.stdout = log 
-                print("Timestamp: " + timestamp)
-                print("Twitter Handle: @" + twitter_handle)
+                print("Timestamp: " , timestamp)
+                print("Twitter Handle: @" , twitter_handle)
                 print("Tweet ID: ", new_tweet_id)
                 print("Tweet Text: ", new_tweet_text)
-                print("Regex Result: ", regex)
-                print("Upper Case: ", regex_uppercase, "\n")
+                print("Keywords: ", regex)
+                print("Upper Case: ", regex_uppercase)
+                print("Tweet URL: " , make_url(username, new_tweet_id), "\n")
                 #  Reset the standard output
                 sys.stdout = original_stdout 
         # Photo
@@ -164,7 +169,7 @@ while True:
     ## Update elon table in elonscraper database
     if new_tweet_id > last_tweet_id or new_profile_url != profile_url or new_profile_banner != profile_banner:
         def new_row():
-            row = "INSERT INTO twitter (twitter_handle, tweet_id, tweet_text, regex_result, regex_uppercase, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + new_tweet_text + "', '" + format(regex) + "', '" + format(regex_uppercase) + "', '" + new_profile_url + "', '" + new_profile_banner +"', '" + timestamp + "');"
+            row = "INSERT INTO twitter (twitter_handle, tweet_id, tweet_text, tweet_url, keywords, uppercase, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + new_tweet_text + "', '" + format(regex) + "', '" + regex_uppercase + "', '" + make_url(username, new_tweet_id) + "', '" + new_profile_url + "', '" + new_profile_banner +"', '" + timestamp + "');"
             conn = None
             try:
                 #  read the connection parameters
