@@ -11,6 +11,7 @@ import argparse                             # Change elon to someone else if des
 import datetime                             # Timestamp
 
 ## Variables
+
 # Save original standard output for logging
 original_stdout = sys.stdout
 
@@ -56,6 +57,20 @@ timestamp = format(datetime.datetime.now())
 # Iterator
 i = 1
 
+## Functions
+
+# Convert a list to a string  
+def listToString(s):     
+    str1 = ""      
+    for ele in s: 
+        str1 += ele      
+    return str1 
+
+# Remove characters that break INSERT  
+def format_regex(r):
+    r.replace("\'", "").replace(" ", "").replace("[", "").replace("]", "").replace(",", "")
+    return r
+
 ## Scrape Twitter and open in browser if new tweet, profile photo changed, or banner changed
 while True:
     try:
@@ -73,8 +88,9 @@ while True:
         new_tweet_id = new_tweet_contents[1]["id"]
         new_tweet_id_2 = new_tweet_contents[0]["id"]
         if new_tweet_id_2 > new_tweet_id:
-            new_tweet_id = new_tweet_id_2
             newest_tweet = 0
+        else:
+            newest_tweet = 1
         new_tweet_text = new_tweet_contents[newest_tweet]["text"]
         # Compare tweet
         if new_tweet_id != last_tweet_id and new_tweet_id > last_tweet_id:
@@ -103,7 +119,8 @@ while True:
         regex_uppercase_pattern = ['[A-Z]+']
         for p in regex_uppercase_pattern:
             regex_uppercase = re.findall(p, new_tweet_text)
-            print("Upper Case: ", regex_uppercase)
+        regex_uppercase = format_regex(listToString(re.findall(p, new_tweet_text)))
+        print("Upper Case: ", regex_uppercase)
     except:
         print("Regex error")
     # Photo
