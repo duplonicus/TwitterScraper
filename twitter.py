@@ -72,8 +72,8 @@ def format_regex(r):
     return r
 
 # Make tweet URL
-def make_url(username, tweet_id):
-    url = "https://twitter.com/" + username + "/status/" + format(tweet_id)
+def make_url(twitter_handle, tweet_id):
+    url = "https://twitter.com/" + twitter_handle + "/status/" + format(tweet_id)
     return url
 
 ## Scrape Twitter and open in browser if new tweet, profile photo changed, or banner changed ##
@@ -111,24 +111,25 @@ while True:
         print("Bad tweet \n")
 
     ## Print results to console
-    print("Iteration: ", i)
-    print("Timestamp: " , timestamp)
-    print("Twitter Handle: @" , twitter_handle)
+    print("Iteration:", i)
+    print("Timestamp:", timestamp)
+    print("Twitter Handle: @" + twitter_handle)
     # Tweets
-    print("Tweet ID: ", new_tweet_id)
-    print("Tweet Text: ", new_tweet_text)        
+    print("Tweet ID:", new_tweet_id)
+    print("Tweet Text:", new_tweet_text)       
     try:
         # Regular expression for keywords
         regex = re.search(keywords, new_tweet_text)
-        print("Keywords: ", regex)
+        print("Keywords:", regex)
         # Regular expression for uppercase characters
         regex_uppercase_pattern = ['[A-Z]+']
         for p in regex_uppercase_pattern:
             regex_uppercase = re.findall(p, new_tweet_text)
         regex_uppercase = format_regex(listToString(re.findall(p, new_tweet_text)))
-        print("Upper Case: ", regex_uppercase, "\n")
+        print("Upper Case:", regex_uppercase)
     except:
         print("Regex error")
+    print("Tweet URL:", make_url(twitter_handle, new_tweet_id), "\n")
 
     ## Print results to log if new tweet, profile URL changed, or banner changed
     try:
@@ -136,31 +137,31 @@ while True:
         if new_tweet_id > last_tweet_id:
             with open("twitter.log", "a") as log:
                 sys.stdout = log 
-                print("Timestamp: " , timestamp)
-                print("Twitter Handle: @" , twitter_handle)
-                print("Tweet ID: ", new_tweet_id)
-                print("Tweet Text: ", new_tweet_text)
-                print("Keywords: ", regex)
-                print("Upper Case: ", regex_uppercase)
-                print("Tweet URL: " , make_url(username, new_tweet_id), "\n")
+                print("Timestamp:", timestamp)
+                print("Twitter Handle: @" + twitter_handle)
+                print("Tweet ID:", new_tweet_id)
+                print("Tweet Text:", new_tweet_text)
+                print("Keywords:", regex)
+                print("Upper Case:", regex_uppercase)
+                print("Tweet URL:", make_url(twitter_handle, new_tweet_id), "\n")
                 #  Reset the standard output
                 sys.stdout = original_stdout 
         # Photo
         if new_profile_url != profile_url:
             with open("twitter.log", "a") as log:
                 sys.stdout = log 
-                print("Timestamp: " + timestamp)
+                print("Timestamp:", timestamp)
                 print("Twitter Handle: @" + twitter_handle)
-                print("Profile URL: ", new_profile_url, "\n")
+                print("Profile URL:", new_profile_url, "\n")
                 # Reset the standard output
                 sys.stdout = original_stdout
         # Banner
         if new_profile_banner != profile_banner:
             with open("twitter.log", "a") as log:
                 sys.stdout = log 
-                print("Timestamp: " + timestamp)
+                print("Timestamp:", timestamp)
                 print("Twitter Handle: @" + twitter_handle)
-                print("Banner URL: ", new_profile_banner, "\n")
+                print("Banner URL:", new_profile_banner, "\n")
                 # Reset the standard output
                 sys.stdout = original_stdout
     except:
@@ -187,7 +188,7 @@ while True:
                 print(error)
                 with open("twitter.log", "a") as log:
                     sys.stdout = log 
-                    print("Database error: ", error, "\n")
+                    print("Database error:", error, "\n")
                     # Reset the standard output
                     sys.stdout = original_stdout
             finally:
