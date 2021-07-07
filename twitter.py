@@ -35,9 +35,8 @@ profile = tw.get_profile(name=twitter_handle).__dict__
 profile_photo = profile["profileurl"]
 profile_banner = profile["bannerurl"]
 
-# Get Twitter ID and URL
+# Get Twitter ID
 twitter_id = profile["id"]
-twitter_url = "https://twitter.com/" + twitter_handle
 
 # Get last 2 tweets and compare to filter pinned tweets
 last_tweet_contents = tw.get_tweets(twitter_id, count=2).contents
