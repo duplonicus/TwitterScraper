@@ -33,7 +33,7 @@ tw = TwitterScraper()
 # Get Twitter profile data
 profile = tw.get_profile(name=twitter_handle)
 profile_dict = profile.__dict__
-profile_url = profile_dict["profileurl"]
+profile_photo = profile_dict["profileurl"]
 profile_banner = profile_dict["bannerurl"]
 
 # Get Twitter ID and URL
@@ -49,11 +49,14 @@ if last_tweet_id_2 > last_tweet_id:
     last_tweet_id = last_tweet_id_2
 
 # Store empty new tweet ID and text strings to avoid errors
-new_tweet_id = None
-new_tweet_text = None
+new_tweet_id = ""
+new_tweet_text = ""
 
 # Keywords
 keywords = "Crypto|crypto|BTC|btc|Bitcoin|bitcoin|DOGE|Doge|doge|💦|🚀|🌙|🌕|🌜|🌛|CUM|Cum|cum|Rocket|rocket|Shib|shib|Moon|moon|Money|money|Economy|economy|Market|market"
+
+# Regular expression for uppercase characters
+regex_uppercase_pattern = ['[A-Z]+']
 
 # Timestamp
 timestamp = format(datetime.datetime.now())
@@ -68,7 +71,7 @@ def listToString(s):
     str1 = ""      
     for ele in s: 
         str1 += ele      
-    return str1 
+    return str1
 
 # Remove characters that break INSERT  
 def format_regex(r):
@@ -86,7 +89,7 @@ while True:
         # Get new profile data
         new_profile = tw.get_profile(name=twitter_handle)
         new_profile_dict = new_profile.__dict__
-        new_profile_url = new_profile_dict["profileurl"]
+        new_profile_photo = new_profile_dict["profileurl"]
         new_profile_banner = new_profile_dict["bannerurl"]
     except:
         print("Bad profile \n")
@@ -104,10 +107,10 @@ while True:
         new_tweet_text = new_tweet_contents[newest_tweet]["text"]
         # Compare new tweet to last tweet
         if new_tweet_id != last_tweet_id and new_tweet_id > last_tweet_id:
-            webbrowser.open(twitter_url, new=1)
+            webbrowser.open(make_url(), new=1)
         # Compare profile URL
-        if new_profile_url != profile_url:
-            webbrowser.open(new_profile_url, new=1) 
+        if new_profile_photo != profile_photo:
+            webbrowser.open(new_profile_photo, new=1) 
         # Compare banner URL
         if new_profile_banner != profile_banner:
             webbrowser.open(new_profile_banner, new=1)
@@ -124,12 +127,13 @@ while True:
     try:
         # Regular expression for keywords
         regex = re.search(keywords, new_tweet_text)
-        print("Keywords:", regex)
-        # Regular expression for uppercase characters
-        regex_uppercase_pattern = ['[A-Z]+']
+        try:
+            print("Keywords:", regex[0])
+            regex = regex[0]
+        except:
+            print("Keywords:", regex)
         for p in regex_uppercase_pattern:
-            regex_uppercase = re.findall(p, new_tweet_text)
-        regex_uppercase = format_regex(listToString(re.findall(p, new_tweet_text)))
+            regex_uppercase = format_regex(listToString(re.findall(p, new_tweet_text)))
         print("Upper Case:", regex_uppercase)
     except:
         print("Regex error")
@@ -151,12 +155,12 @@ while True:
                 # Reset the standard output
                 sys.stdout = original_stdout 
         # Photo
-        if new_profile_url != profile_url:
+        if new_profile_photo != profile_photo:
             with open("twitter.log", "a") as log:
                 sys.stdout = log 
                 print("Timestamp:", timestamp)
                 print("Twitter Handle: @" + twitter_handle)
-                print("Profile URL:", new_profile_url, "\n")
+                print("Profile URL:", new_profile_photo, "\n")
                 # Reset the standard output
                 sys.stdout = original_stdout
         # Banner
@@ -171,10 +175,10 @@ while True:
     except:
         print("Log error \n")
 
-    ## Update twitter table in elonscraper database ##
-    if new_tweet_id > last_tweet_id or new_profile_url != profile_url or new_profile_banner != profile_banner:
+    ## Update twitter table in database ##
+    if new_tweet_id > last_tweet_id or new_profile_photo != profile_photo or new_profile_banner != profile_banner:
         def new_row():
-            row = "INSERT INTO twitter (twitter_handle, tweet_id, tweet_text, tweet_url, keywords, uppercase, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + new_tweet_text + "', '" + format(regex) + "', '" + regex_uppercase + "', '" + make_url() + "', '" + new_profile_url + "', '" + new_profile_banner +"', '" + timestamp + "');"
+            row = "INSERT INTO twitter (twitter_handle, tweet_id, tweet_text, tweet_url, keywords, uppercase, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + new_tweet_text + "', '" + format(regex) + "', '" + regex_uppercase + "', '" + make_url() + "', '" + new_profile_photo + "', '" + new_profile_banner +"', '" + timestamp + "');"
             conn = None
             try:
                 # Read the connection parameters
@@ -203,7 +207,7 @@ while True:
     
     ## Play sound if keyword found or image changed ##
     try:
-        if re.search(keywords, new_tweet_text) and new_tweet_id > last_tweet_id or new_profile_url != profile_url or new_profile_banner != profile_banner:
+        if re.search(keywords, new_tweet_text) and new_tweet_id > last_tweet_id or new_profile_photo != profile_photo or new_profile_banner != profile_banner:
             winsound.PlaySound("sound2.wav", winsound.SND_ASYNC)
     except:
         pass
@@ -215,8 +219,8 @@ while True:
     ## Update tweet ID, profile URL, and banner URL ##
     if new_tweet_id > last_tweet_id:
         last_tweet_id = new_tweet_id
-    if new_profile_url != profile_url:
-        profile_url = new_profile_url
+    if new_profile_photo != profile_photo:
+        profile_photo = new_profile_photo
     if new_profile_banner != profile_banner:
         profile_banner = new_profile_banner
 
