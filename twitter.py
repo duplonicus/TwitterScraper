@@ -31,18 +31,16 @@ twitter_handle = args.username
 tw = TwitterScraper()
 
 # Get Twitter profile data
-profile = tw.get_profile(name=twitter_handle)
-profile_dict = profile.__dict__
-profile_photo = profile_dict["profileurl"]
-profile_banner = profile_dict["bannerurl"]
+profile = tw.get_profile(name=twitter_handle).__dict__
+profile_photo = profile["profileurl"]
+profile_banner = profile["bannerurl"]
 
 # Get Twitter ID and URL
-twitter_id = profile_dict["id"]
+twitter_id = profile["id"]
 twitter_url = "https://twitter.com/" + twitter_handle
 
 # Get last 2 tweets and compare to filter pinned tweets
-last_tweet = tw.get_tweets(twitter_id, count=2)
-last_tweet_contents = last_tweet.contents
+last_tweet_contents = tw.get_tweets(twitter_id, count=2).contents
 last_tweet_id = last_tweet_contents[0]["id"]
 last_tweet_id_2 = last_tweet_contents[1]["id"]
 if last_tweet_id_2 > last_tweet_id:
@@ -87,16 +85,14 @@ def make_url():
 while True:
     try:
         # Get new profile data
-        new_profile = tw.get_profile(name=twitter_handle)
-        new_profile_dict = new_profile.__dict__
-        new_profile_photo = new_profile_dict["profileurl"]
-        new_profile_banner = new_profile_dict["bannerurl"]
+        new_profile = tw.get_profile(name=twitter_handle).__dict__
+        new_profile_photo = new_profile["profileurl"]
+        new_profile_banner = new_profile["bannerurl"]
     except:
         print("Bad profile \n")
     try:
         # Get 2 latest tweets and compare to filter a pinned
-        new_tweet = tw.get_tweets(twitter_id, count=2)
-        new_tweet_contents = new_tweet.contents
+        new_tweet_contents = tw.get_tweets(twitter_id, count=2).contents
         new_tweet_id = new_tweet_contents[1]["id"]
         new_tweet_id_2 = new_tweet_contents[0]["id"]
         if new_tweet_id_2 > new_tweet_id:
