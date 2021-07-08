@@ -29,4 +29,4 @@ The keywords can be modified within twitter.py and are seperated by the | symbol
 
 ![Screenshot](https://i.imgur.com/KvDBJRf.png)
 
-![Screenshot](https://i.imgur.com/xohQNjC.png)
+![Screenshot](https://i.imgur.com/0SIqCVO.png)
