@@ -25,7 +25,7 @@ Example: "python3 twitter.py michaeljburry"
 
 The keywords can be modified within twitter.py and are seperated by the | symbol
 
-# Screenshot
+# Screenshots
 
 ![Screenshot](https://i.imgur.com/KvDBJRf.png)
 
