@@ -1,5 +1,5 @@
 # TODO consolidate more code into functions
-# TODO check latest entry in DB and add last tweet to log and DB if not present
+# TODO check latest entry in DB and add last_tweet to log and DB if not present
 # TODO sentiment analysis
 
 ## Modules ##
@@ -138,7 +138,7 @@ while True:
     try:
         # Tweets
         if new_tweet_id > last_tweet_id:
-            with open("twitter.log", "a") as log:
+            with open("twitter.log", "a", encoding="utf-8") as log:
                 sys.stdout = log 
                 print("Timestamp:", timestamp)
                 print("Twitter Handle: @" + twitter_handle)
@@ -173,7 +173,7 @@ while True:
     ## Update twitter table in database ##
     if new_tweet_id > last_tweet_id or new_profile_photo != profile_photo or new_profile_banner != profile_banner:
         def new_row():
-            row = "INSERT INTO twitter (twitter_handle, tweet_id, tweet_text, tweet_url, keywords, uppercase, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + new_tweet_text + "', '" + format(regex) + "', '" + regex_uppercase + "', '" + make_url() + "', '" + new_profile_photo + "', '" + new_profile_banner +"', '" + timestamp + "');"
+            row = "INSERT INTO twitter (twitter_handle, tweet_id, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + new_tweet_text + "', '" + format(regex) + "', '" + regex_uppercase + "', '" + make_url() + "', '" + new_profile_photo + "', '" + new_profile_banner +"', '" + timestamp + "');"
             conn = None
             try:
                 # Read the connection parameters
