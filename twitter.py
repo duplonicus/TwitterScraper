@@ -9,7 +9,6 @@ import time                                 # Wait
 import re                                   # Regex
 import winsound                             # Play Windows sounds
 import sys                                  # Write to files
-import psycopg2                             # PostgreSQL functionality
 import argparse                             # Change elon to someone else if desired
 import datetime                             # Timestamp
 from new_row import new_row                 # Add new rows to database
@@ -38,7 +37,7 @@ profile_banner = profile["bannerurl"]
 # Get Twitter ID
 twitter_id = profile["id"]
 
-# Get last 2 tweets and compare to filter pinned tweets
+# Get last 2 tweets and compare IDs to filter pinned tweets
 last_tweet_contents = tw.get_tweets(twitter_id, count=2).contents
 last_tweet_id = last_tweet_contents[0]["id"]
 last_tweet_id_2 = last_tweet_contents[1]["id"]
