@@ -1,5 +1,4 @@
 # TODO consolidate more code into functions
-# TODO consolidate database functions into 1 module
 # TODO check latest tweet ID entry in DB and add last_tweet info to log and DB if not present
 # TODO sentiment analysis
 
@@ -95,7 +94,7 @@ def make_url():
 
 # Create twitter table if it doesn't exist
 table_name = "twitter"
-table_query = "CREATE TABLE " + table_name + " (twitter_pkey SERIAL PRIMARY KEY, twitter_handle TEXT, tweet_id NUMERIC, tweet_text TEXT, keywords TEXT, uppercase TEXT, tweet_url TEXT, profile_photo_url TEXT, profile_banner_url TEXT, timestamp TEXT);"
+table_query = "CREATE TABLE " + table_name + " (" + table_name + "_pkey SERIAL PRIMARY KEY, twitter_handle TEXT, tweet_id NUMERIC, hashtags TEXT, tweet_text TEXT, keywords TEXT, uppercase TEXT, tweet_url TEXT, profile_photo_url TEXT, profile_banner_url TEXT, timestamp TEXT);"
 try:
     create_table(table_name, table_query)
 except:
@@ -144,7 +143,7 @@ while True:
     print("Tweet Text:", new_tweet_text)       
     try:
         # Regular expression for keywords
-        regex = re.search(keywords, new_tweet_text)
+        regex = re.search(keywords, new_tweet_text + listToString(new_tweet_hashtags))
         try:
             print("Keywords:", regex[0])
             regex = regex[0]
@@ -196,7 +195,7 @@ while True:
 
     ## Update twitter table in database ##
     if new_tweet_id > last_tweet_id or new_profile_photo != profile_photo or new_profile_banner != profile_banner:
-        row_query = "INSERT INTO " + table_name + " (twitter_handle, tweet_id, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + format_tweet(new_tweet_text) + "', '" + format(regex) + "', '" + regex_uppercase + "', '" + make_url() + "', '" + new_profile_photo + "', '" + new_profile_banner + "', '" + timestamp + "');"
+        row_query = "INSERT INTO " + table_name + " (twitter_handle, tweet_id, hashtags, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + listToString(new_tweet_hashtags) + "', '" + format_tweet(new_tweet_text) + "', '" + format(regex) + "', '" + regex_uppercase + "', '" + make_url() + "', '" + new_profile_photo + "', '" + new_profile_banner + "', '" + timestamp + "');"
         try:
             new_row(row_query) 
         except:
