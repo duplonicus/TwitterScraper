@@ -12,6 +12,7 @@ import sys                                  # Write to files
 import argparse                             # Change elon to someone else if desired
 import datetime                             # Timestamp
 from new_row import new_row                 # Add new rows to database
+from create_table import create_tables      # Create table if it doens't exist
 
 ## Variables ##
 
@@ -30,19 +31,27 @@ twitter_handle = args.username
 tw = TwitterScraper()
 
 # Get Twitter profile data
-profile = tw.get_profile(name=twitter_handle).__dict__
-profile_photo = profile["profileurl"]
-profile_banner = profile["bannerurl"]
+try:
+    profile = tw.get_profile(name=twitter_handle).__dict__
+    profile_photo = profile["profileurl"]
+    profile_banner = profile["bannerurl"]
+    twitter_id = profile["id"]
+except:
+    print("Bad initial profile")
+    print("Try again")
+    exit()
 
-# Get Twitter ID
-twitter_id = profile["id"]
-
-# Get last 2 tweets and compare IDs to filter pinned tweets
-last_tweet_contents = tw.get_tweets(twitter_id, count=2).contents
-last_tweet_id = last_tweet_contents[0]["id"]
-last_tweet_id_2 = last_tweet_contents[1]["id"]
-if last_tweet_id_2 > last_tweet_id:
-    last_tweet_id = last_tweet_id_2
+# Get last 2 tweets and compare IDs to filter up to 1 pinned tweet
+try:
+    last_tweet_contents = tw.get_tweets(twitter_id, count=2).contents
+    last_tweet_id = last_tweet_contents[0]["id"]
+    last_tweet_id_2 = last_tweet_contents[1]["id"]
+    if last_tweet_id_2 > last_tweet_id:
+        last_tweet_id = last_tweet_id_2
+except:
+    print("No tweets detected")
+    print("Try again")
+    exit()
 
 # Store empty new tweet ID and text strings to avoid errors
 new_tweet_id = ""
@@ -74,10 +83,21 @@ def format_regex(r):
     r.replace("\'", "").replace(" ", "").replace("[", "").replace("]", "").replace(",", "")
     return r
 
+# Escape character that break INSERT
+def format_tweet(t):
+    t.replace("\'", "\\\'").replace("\"", "\\\"")
+    return t
+
 # Make tweet URL
 def make_url():
     url = "https://twitter.com/" + twitter_handle + "/status/" + format(new_tweet_id)
     return url
+
+# Create twitter table if it doesn't exist
+try:
+    create_tables()
+except:
+    print("Database not detected")
 
 ## Scrape Twitter and open in browser if new tweet, profile photo changed, or banner changed ##
 while True:
@@ -89,7 +109,7 @@ while True:
     except:
         print("Bad profile \n")
     try:
-        # Get 2 latest tweets and compare to filter a pinned
+        # Get 2 latest tweets and compare IDs to filter up to 1 pinned tweet
         new_tweet_contents = tw.get_tweets(twitter_id, count=2).contents
         new_tweet_id = new_tweet_contents[1]["id"]
         new_tweet_id_2 = new_tweet_contents[0]["id"]
@@ -171,14 +191,15 @@ while True:
 
     ## Update twitter table in database ##
     if new_tweet_id > last_tweet_id or new_profile_photo != profile_photo or new_profile_banner != profile_banner:
-        new_row()        
+        row = "INSERT INTO twitter (twitter_handle, tweet_id, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + format_tweet(new_tweet_text) + "', '" + format(regex) + "', '" + regex_uppercase + "', '" + make_url() + "', '" + new_profile_photo + "', '" + new_profile_banner +"', '" + timestamp + "');"
+        new_row(row)        
     
     ## Play sound if keyword found or image changed ##
     try:
         if re.search(keywords, new_tweet_text) and new_tweet_id > last_tweet_id or new_profile_photo != profile_photo or new_profile_banner != profile_banner:
             winsound.PlaySound("sound2.wav", winsound.SND_ASYNC)
     except:
-        pass
+        print("Error playing sound", "\n")
         
     # Feeling brave? Add exchange API code here
     # if re.search("DOGE|Doge|doge",new_tweet_text) and new_tweet_id > last_tweet_id:
