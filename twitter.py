@@ -120,7 +120,7 @@ while True:
         else:
             newest_tweet = 1
         new_tweet_text = new_tweet_contents[newest_tweet]["text"]
-        new_tweet_hashtags = new_tweet_contents[newest_tweet]["hashtags"]
+        new_tweet_hashtags = listToString(new_tweet_contents[newest_tweet]["hashtags"])
         # Compare new tweet to last tweet
         if new_tweet_id != last_tweet_id and new_tweet_id > last_tweet_id:
             webbrowser.open(make_url(), new=1)
@@ -143,7 +143,7 @@ while True:
     print("Tweet Text:", new_tweet_text)       
     try:
         # Regular expression for keywords
-        regex = re.search(keywords, new_tweet_text + listToString(new_tweet_hashtags))
+        regex = re.search(keywords, new_tweet_text + new_tweet_hashtags)
         try:
             print("Keywords:", regex[0])
             regex = regex[0]
@@ -195,7 +195,7 @@ while True:
 
     ## Update twitter table in database ##
     if new_tweet_id > last_tweet_id or new_profile_photo != profile_photo or new_profile_banner != profile_banner:
-        row_query = "INSERT INTO " + table_name + " (twitter_handle, tweet_id, hashtags, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + listToString(new_tweet_hashtags) + "', '" + format_tweet(new_tweet_text) + "', '" + format(regex) + "', '" + regex_uppercase + "', '" + make_url() + "', '" + new_profile_photo + "', '" + new_profile_banner + "', '" + timestamp + "');"
+        row_query = "INSERT INTO " + table_name + " (twitter_handle, tweet_id, hashtags, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + new_tweet_hashtags + "', '" + format_tweet(new_tweet_text) + "', '" + format(regex) + "', '" + regex_uppercase + "', '" + make_url() + "', '" + new_profile_photo + "', '" + new_profile_banner + "', '" + timestamp + "');"
         try:
             new_row(row_query) 
         except:
