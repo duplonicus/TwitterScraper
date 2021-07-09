@@ -12,10 +12,11 @@ def create_tables():
         # connect to the PostgreSQL server
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
-        # create database
-        #cur.execute(create_database)
-        # create table
-        cur.execute(create_table)
+        # create twitter table if it doesn't already exist
+        cur.execute("select exists(select * from information_schema.tables where table_name='twitter')")
+        table_exists = cur.fetchone()[0]
+        if table_exists != True:
+            cur.execute(create_table)      
         # close communication with the PostgreSQL database server
         cur.close()
         # commit the changes
