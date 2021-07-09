@@ -1,18 +1,20 @@
 # TODO consolidate more code into functions
-# TODO check latest entry in DB and add last_tweet to log and DB if not present
+# TODO consolidate database functions into 1 module
+# TODO check latest tweet ID entry in DB and add last_tweet info to log and DB if not present
 # TODO sentiment analysis
 
 ## Modules ##
-from pytwitterscraper import TwitterScraper # Twitter scraper no API required
-import webbrowser                           # Web browser
-import time                                 # Wait
-import re                                   # Regex
-import winsound                             # Play Windows sounds
-import sys                                  # Write to files
-import argparse                             # Change elon to someone else if desired
-import datetime                             # Timestamp
-from new_row import new_row                 # Add new rows to database
-from create_table import create_tables      # Create table if it doens't exist
+from pytwitterscraper import TwitterScraper     # Twitter scraper no API required
+import webbrowser                               # Web browser
+import time                                     # Wait
+import re                                       # Regex
+import winsound                                 # Play Windows sounds
+import sys                                      # Write to files
+import argparse                                 # Change elon to someone else if desired
+import datetime                                 # Timestamp
+#from new_row import new_row                     # Add new rows to database
+#from create_table import create_tables          # Create table if it doens't exist
+from db_functions import new_row, create_tables # Database functions
 
 ## Variables ##
 
@@ -88,7 +90,7 @@ def format_tweet(t):
     t.replace("\'", "\\\'").replace("\"", "\\\"")
     return t
 
-# Make tweet URL
+# Make tweet URL - this can also be retrieved from new_tweet_contents with ["url"]
 def make_url():
     url = "https://twitter.com/" + twitter_handle + "/status/" + format(new_tweet_id)
     return url
