@@ -121,6 +121,7 @@ while True:
         else:
             newest_tweet = 1
         new_tweet_text = new_tweet_contents[newest_tweet]["text"]
+        new_tweet_hashtags = new_tweet_contents[newest_tweet]["hashtags"]
         # Compare new tweet to last tweet
         if new_tweet_id != last_tweet_id and new_tweet_id > last_tweet_id:
             webbrowser.open(make_url(), new=1)
@@ -139,6 +140,7 @@ while True:
     print("Twitter Handle: @" + twitter_handle)
     # Tweets
     print("Tweet ID:", new_tweet_id)
+    print("Tweet Hashtags:", listToString(new_tweet_hashtags))
     print("Tweet Text:", new_tweet_text)       
     try:
         # Regular expression for keywords
@@ -164,6 +166,7 @@ while True:
                 print("Timestamp:", timestamp)
                 print("Twitter Handle: @" + twitter_handle)
                 print("Tweet ID:", new_tweet_id)
+                print("Tweet Hashtags:", listToString(new_tweet_hashtags))
                 print("Tweet Text:", new_tweet_text)
                 print("Keywords:", regex)
                 print("Upper Case:", regex_uppercase)
