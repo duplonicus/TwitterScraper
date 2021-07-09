@@ -10,10 +10,9 @@ import re                                   # Regex
 import winsound                             # Play Windows sounds
 import sys                                  # Write to files
 import psycopg2                             # PostgreSQL functionality
-from config import config                   # Read db.ini
 import argparse                             # Change elon to someone else if desired
 import datetime                             # Timestamp
-from new_row import new_row
+from new_row import new_row                 # Add new rows to database
 
 ## Variables ##
 
