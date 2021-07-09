@@ -12,9 +12,7 @@ import winsound                                 # Play Windows sounds
 import sys                                      # Write to files
 import argparse                                 # Change elon to someone else if desired
 import datetime                                 # Timestamp
-#from new_row import new_row                     # Add new rows to database
-#from create_table import create_tables          # Create table if it doens't exist
-from db_functions import new_row, create_tables # Database functions
+from db_functions import new_row, create_table  # Database functions
 
 ## Variables ##
 
@@ -96,8 +94,10 @@ def make_url():
     return url
 
 # Create twitter table if it doesn't exist
+table_name = "twitter"
+table_query = "CREATE TABLE " + table_name + " (twitter_pkey SERIAL PRIMARY KEY, twitter_handle TEXT, tweet_id NUMERIC, tweet_text TEXT, keywords TEXT, uppercase TEXT, tweet_url TEXT, profile_photo_url TEXT, profile_banner_url TEXT, timestamp TEXT);"
 try:
-    create_tables()
+    create_table(table_name, table_query)
 except:
     print("Database not detected")
 
@@ -196,8 +196,11 @@ while True:
 
     ## Update twitter table in database ##
     if new_tweet_id > last_tweet_id or new_profile_photo != profile_photo or new_profile_banner != profile_banner:
-        row = "INSERT INTO twitter (twitter_handle, tweet_id, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + format_tweet(new_tweet_text) + "', '" + format(regex) + "', '" + regex_uppercase + "', '" + make_url() + "', '" + new_profile_photo + "', '" + new_profile_banner +"', '" + timestamp + "');"
-        new_row(row)        
+        row_query = "INSERT INTO " + table_name + " (twitter_handle, tweet_id, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + format_tweet(new_tweet_text) + "', '" + format(regex) + "', '" + regex_uppercase + "', '" + make_url() + "', '" + new_profile_photo + "', '" + new_profile_banner + "', '" + timestamp + "');"
+        try:
+            new_row(row_query) 
+        except:
+            print("Database not detected")     
     
     ## Play sound if keyword found or image changed ##
     try:
