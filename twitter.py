@@ -3,15 +3,15 @@
 # TODO sentiment analysis
 
 ## Modules ##
-from pytwitterscraper import TwitterScraper     # Twitter scraper no API required
-import webbrowser                               # Web browser
-import time                                     # Wait
-import re                                       # Regex
-import winsound                                 # Play Windows sounds
-import sys                                      # Write to files
-import argparse                                 # Change elon to someone else if desired
-import datetime                                 # Timestamp
-from db_functions import new_row, create_table  # Database functions
+from pytwitterscraper import TwitterScraper                 # Twitter scraper no API required
+import webbrowser                                           # Web browser
+import time                                                 # Wait
+import re                                                   # Regex
+import winsound                                             # Play Windows sounds
+import sys                                                  # Write to files
+import argparse                                             # Change elon to someone else if desired
+import datetime                                             # Timestamp
+from db_functions import *                                  # Database functions
 
 ## Variables ##
 
@@ -29,28 +29,8 @@ twitter_handle = args.username
 # Create twitter scraper object
 tw = TwitterScraper()
 
-# Get Twitter profile data
-try:
-    profile = tw.get_profile(name=twitter_handle).__dict__
-    profile_photo = profile["profileurl"]
-    profile_banner = profile["bannerurl"]
-    twitter_id = profile["id"]
-except:
-    print("Bad initial profile")
-    print("Try again")
-    exit()
-
-# Get last 2 tweets and compare IDs to filter up to 1 pinned tweet
-try:
-    last_tweet_contents = tw.get_tweets(twitter_id, count=2).contents
-    last_tweet_id = last_tweet_contents[0]["id"]
-    last_tweet_id_2 = last_tweet_contents[1]["id"]
-    if last_tweet_id_2 > last_tweet_id:
-        last_tweet_id = last_tweet_id_2
-except:
-    print("No tweets detected")
-    print("Try again")
-    exit()
+# Table name
+table_name = "twitter"
 
 # Store empty new tweet ID and text strings to avoid errors
 new_tweet_id = ""
@@ -92,13 +72,68 @@ def make_url():
     url = "https://twitter.com/" + twitter_handle + "/status/" + format(new_tweet_id)
     return url
 
+# Print to console
+def print_console():
+    print("Iteration:", i)
+    print("Timestamp:", timestamp)
+    print("Twitter Handle: @" + twitter_handle)
+    # Tweets
+    print("Tweet ID:", new_tweet_id)
+    print("Tweet Hashtags:", listToString(new_tweet_hashtags))
+    print("Tweet Text:", new_tweet_text)       
+    try:
+        # Regular expression for keywords
+        regex = re.search(keywords, new_tweet_text + new_tweet_hashtags)
+        try:
+            print("Keywords:", regex[0])
+            regex = regex[0]
+        except:
+            print("Keywords:", regex)
+        for p in regex_uppercase_pattern:
+            regex_uppercase = format_regex(listToString(re.findall(p, new_tweet_text)))
+        print("Upper Case:", regex_uppercase)
+    except:
+        print("Regex error")
+    print("Tweet URL:", make_url(), "\n")
+
 # Create twitter table if it doesn't exist
-table_name = "twitter"
 table_query = "CREATE TABLE " + table_name + " (" + table_name + "_pkey SERIAL PRIMARY KEY, twitter_handle TEXT, tweet_id NUMERIC, hashtags TEXT, tweet_text TEXT, keywords TEXT, uppercase TEXT, tweet_url TEXT, profile_photo_url TEXT, profile_banner_url TEXT, timestamp TEXT);"
 try:
     create_table(table_name, table_query)
 except:
     print("Database not detected")
+
+## Run once before looping ##
+# Get Twitter profile data
+try:
+    profile = tw.get_profile(name=twitter_handle).__dict__
+    profile_photo = profile["profileurl"]
+    profile_banner = profile["bannerurl"]
+    twitter_id = profile["id"]
+except:
+    print("Bad initial profile")
+    print("Try again")
+    exit()
+
+# Get last 2 tweets and compare IDs to filter up to 1 pinned tweet
+try:
+    last_tweet_contents = tw.get_tweets(twitter_id, count=2).contents
+    last_tweet_id = last_tweet_contents[0]["id"]
+    last_tweet_id_2 = last_tweet_contents[1]["id"]
+    if last_tweet_id_2 > last_tweet_id:
+        last_tweet_id = last_tweet_id_2
+        old_tweet = 0
+    else:
+        old_tweet = 1
+    new_tweet_hashtags = listToString(last_tweet_contents[old_tweet]["hashtags"])
+    # Log to database if not present
+    #if check_table(last_tweet_id, tweet_id, table_name) == False
+        #last_tweet_query = "INSERT INTO " + table_name + " (twitter_handle, tweet_id, hashtags, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(last_tweet_id) + "', '" + last_tweet_hashtags + "', '" + format_tweet(last_tweet_text) + "', '" + format(regex) + "', '" + regex_uppercase + "', '" + make_url() + "', '" + new_profile_photo + "', '" + new_profile_banner + "', '" + timestamp + "');"
+        #new_row(last_tweet_query)
+except:
+    print("No tweets detected")
+    print("Try again")
+    exit()
 
 ## Scrape Twitter and open in browser if new tweet, profile photo changed, or banner changed ##
 while True:
@@ -133,6 +168,7 @@ while True:
     except:
         print("Bad tweet \n")
 
+    
     ## Print results to console ##
     print("Iteration:", i)
     print("Timestamp:", timestamp)
@@ -155,6 +191,8 @@ while True:
     except:
         print("Regex error")
     print("Tweet URL:", make_url(), "\n")
+  
+    #print_console()
 
     ## Print results to log if new tweet, profile URL changed, or banner changed ##
     try:
