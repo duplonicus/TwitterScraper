@@ -48,7 +48,7 @@ def create_table(name, query):
             conn.close()
 
 def check_table(value, column, table):
-    """check if value exists in column in table"""    
+    """check if value exists in column in table - returns True or False"""    
     conn = None
     try:
         # read the connection parameters
