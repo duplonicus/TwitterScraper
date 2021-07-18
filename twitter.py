@@ -1,4 +1,4 @@
-# TODO consolidate more code into functions
+# TODO consolidate more code into functions - regex, print_console, print_log, 
 # TODO check latest tweet ID entry in DB and add last_tweet info to log and DB if not present
 # TODO sentiment analysis
 
@@ -9,21 +9,32 @@ import time                                                 # Wait
 import re                                                   # Regex
 import winsound                                             # Play Windows sounds
 import sys                                                  # Write to files
-import argparse                                             # Change elon to someone else if desired
+import argparse                                             # Argument parser - change default to someone else if desired
 import datetime                                             # Timestamp
 from db_functions import *                                  # Database functions
+from discord_webhook import DiscordWebhook, DiscordEmbed    # Discord webhook
+import secrets                                              # Contains webhook URL for Discord channel
+
 
 ## Variables ##
 
-# Save original standard output for logging
+# Options
+console = True
+log = True
+open_browser = True
+play_sounds = True
+database = True
+discord = True
+
+# Save original standard output (for logging to twitter.log)
 original_stdout = sys.stdout
 
 # Argument parser
 parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
-parser.add_argument("username", nargs="?", default="elonmusk")
+parser.add_argument("username", nargs="?", default="unusual_whales") # Change default twitter account here
 args = parser.parse_args()
 
-# Get Twitter handle from argument or default to Elon Musk
+# Get Twitter handle from argument
 twitter_handle = args.username
 
 # Create twitter scraper object
@@ -32,14 +43,15 @@ tw = TwitterScraper()
 # Table name
 table_name = "twitter"
 
-# Store empty new tweet ID and text strings to avoid errors
+# Variables for loop
 new_tweet_id = ""
 new_tweet_text = ""
+new_tweet_hashtags = ""
 
 # Keywords
 keywords = "Crypto|crypto|BTC|btc|Bitcoin|bitcoin|DOGE|Doge|doge|💦|🚀|🌙|🌕|🌜|🌛|CUM|Cum|cum|Rocket|rocket|Shib|shib|Moon|moon|Money|money|Economy|economy|Market|market"
 
-# Regular expression for uppercase characters
+# Regular expression pattern for uppercase characters
 regex_uppercase_pattern = ['[A-Z]+']
 
 # Timestamp
@@ -57,7 +69,7 @@ def listToString(s):
         str1 += ele      
     return str1
 
-# Remove characters that break INSERT  
+# Remove characters from regex  
 def format_regex(r):
     r.replace("\'", "").replace(" ", "").replace("[", "").replace("]", "").replace(",", "")
     return r
@@ -96,12 +108,22 @@ def print_console():
         print("Regex error")
     print("Tweet URL:", make_url(), "\n")
 
+# Message Discord
+def message_discord_text():
+    embed = DiscordEmbed(title='@' + twitter_handle, description=new_tweet_text, color='03b2f8')
+    # add fields to embed
+    embed.add_embed_field(name='URL', value=url)
+    # add embed object to webhook
+    webhook.add_embed(embed)
+    response = webhook.execute()
+
 # Create twitter table if it doesn't exist
-table_query = "CREATE TABLE " + table_name + " (" + table_name + "_pkey SERIAL PRIMARY KEY, twitter_handle TEXT, tweet_id NUMERIC, hashtags TEXT, tweet_text TEXT, keywords TEXT, uppercase TEXT, tweet_url TEXT, profile_photo_url TEXT, profile_banner_url TEXT, timestamp TEXT);"
-try:
-    create_table(table_name, table_query)
-except:
-    print("Database not detected")
+if database:  
+    table_query = "CREATE TABLE " + table_name + " (" + table_name + "_pkey SERIAL PRIMARY KEY, twitter_handle TEXT, tweet_id NUMERIC, hashtags TEXT, tweet_text TEXT, keywords TEXT, uppercase TEXT, tweet_url TEXT, profile_photo_url TEXT, profile_banner_url TEXT, timestamp TEXT);" 
+    try:
+        create_table(table_name, table_query)
+    except:
+        print("Database not detected")
 
 ## Run once before looping ##
 # Get Twitter profile data
@@ -135,6 +157,13 @@ except:
     print("Try again")
     exit()
 
+""" if check_table(last_tweet_id, tweet_id, twitter) != True:
+    row_query = "INSERT INTO " + table_name + " (twitter_handle, tweet_id, hashtags, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + new_tweet_hashtags + "', '" + format_tweet(new_tweet_text) + "', '" + format(regex) + "', '" + regex_uppercase + "', '" + make_url() + "', '" + new_profile_photo + "', '" + new_profile_banner + "', '" + timestamp + "');"
+        try:
+            new_row(row_query) 
+        except:
+            print("Database not detected") """
+
 ## Scrape Twitter and open in browser if new tweet, profile photo changed, or banner changed ##
 while True:
     try:
@@ -157,47 +186,52 @@ while True:
         new_tweet_text = new_tweet_contents[newest_tweet]["text"]
         new_tweet_hashtags = listToString(new_tweet_contents[newest_tweet]["hashtags"])
         # Compare new tweet to last tweet
-        if new_tweet_id != last_tweet_id and new_tweet_id > last_tweet_id:
-            webbrowser.open(make_url(), new=1)
-        # Compare profile URL
-        if new_profile_photo != profile_photo:
-            webbrowser.open(new_profile_photo, new=1) 
-        # Compare banner URL
-        if new_profile_banner != profile_banner:
-            webbrowser.open(new_profile_banner, new=1)
+        if open_browser:
+            if new_tweet_id != last_tweet_id and new_tweet_id > last_tweet_id:
+                webbrowser.open(make_url(), new=1)
+            # Compare profile URL
+            if new_profile_photo != profile_photo:
+                webbrowser.open(new_profile_photo, new=1) 
+            # Compare banner URL
+            if new_profile_banner != profile_banner:
+                webbrowser.open(new_profile_banner, new=1)
     except:
         print("Bad tweet \n")
 
+    ## Send tweet to discord
+    if discord and new_tweet_id > last_tweet_id:
+        message_discord_text()
     
     ## Print results to console ##
-    print("Iteration:", i)
-    print("Timestamp:", timestamp)
-    print("Twitter Handle: @" + twitter_handle)
-    # Tweets
-    print("Tweet ID:", new_tweet_id)
-    print("Tweet Hashtags:", listToString(new_tweet_hashtags))
-    print("Tweet Text:", new_tweet_text)       
-    try:
-        # Regular expression for keywords
-        regex = re.search(keywords, new_tweet_text + new_tweet_hashtags)
+    if console:
+        print("Iteration:", i)
+        print("Timestamp:", timestamp)
+        print("Twitter Handle: @" + twitter_handle)
+        # Tweets
+        print("Tweet ID:", new_tweet_id)
+        print("Tweet Hashtags:", listToString(new_tweet_hashtags))
+        print("Tweet Text:", new_tweet_text)       
         try:
-            print("Keywords:", regex[0])
-            regex = regex[0]
+            # Regular expression for keywords
+            regex = re.search(keywords, new_tweet_text + new_tweet_hashtags)
+            try:
+                print("Keywords:", regex[0])
+                regex = regex[0]
+            except:
+                print("Keywords:", regex)
+            for p in regex_uppercase_pattern:
+                regex_uppercase = format_regex(listToString(re.findall(p, new_tweet_text)))
+            print("Upper Case:", regex_uppercase)
         except:
-            print("Keywords:", regex)
-        for p in regex_uppercase_pattern:
-            regex_uppercase = format_regex(listToString(re.findall(p, new_tweet_text)))
-        print("Upper Case:", regex_uppercase)
-    except:
-        print("Regex error")
-    print("Tweet URL:", make_url(), "\n")
+            print("Regex error")
+        print("Tweet URL:", make_url(), "\n")
   
     #print_console()
 
     ## Print results to log if new tweet, profile URL changed, or banner changed ##
     try:
         # Tweets
-        if new_tweet_id > last_tweet_id:
+        if log and new_tweet_id > last_tweet_id:
             with open("twitter.log", "a", encoding="utf-8") as log:
                 sys.stdout = log 
                 print("Timestamp:", timestamp)
@@ -232,7 +266,7 @@ while True:
         print("Log error \n")
 
     ## Update twitter table in database ##
-    if new_tweet_id > last_tweet_id or new_profile_photo != profile_photo or new_profile_banner != profile_banner:
+    if database and (new_tweet_id > last_tweet_id or new_profile_photo != profile_photo or new_profile_banner != profile_banner):
         row_query = "INSERT INTO " + table_name + " (twitter_handle, tweet_id, hashtags, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + new_tweet_hashtags + "', '" + format_tweet(new_tweet_text) + "', '" + format(regex) + "', '" + regex_uppercase + "', '" + make_url() + "', '" + new_profile_photo + "', '" + new_profile_banner + "', '" + timestamp + "');"
         try:
             new_row(row_query) 
@@ -241,7 +275,7 @@ while True:
     
     ## Play sound if keyword found or image changed ##
     try:
-        if re.search(keywords, new_tweet_text) and new_tweet_id > last_tweet_id or new_profile_photo != profile_photo or new_profile_banner != profile_banner:
+        if play_sounds and ((re.search(keywords, new_tweet_text) and new_tweet_id > last_tweet_id) or (new_profile_photo != profile_photo) or (new_profile_banner != profile_banner)):
             winsound.PlaySound("sound2.wav", winsound.SND_ASYNC)
     except:
         print("Error playing sound", "\n")
