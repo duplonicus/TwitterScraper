@@ -1,4 +1,5 @@
 __pycache__/
+.vscode/
 db.ini
 dbtest.py
 insert.py
@@ -7,3 +8,6 @@ test.py
 tiktok.py
 twitter-android.py
 twitter.log
+secrets.py
+dbot.py
+.env
