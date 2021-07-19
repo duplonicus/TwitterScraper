@@ -13,18 +13,17 @@ import argparse                                             # Argument parser - 
 import datetime                                             # Timestamp
 from db_functions import *                                  # Database functions
 from discord_webhook import DiscordWebhook, DiscordEmbed    # Discord webhook
-import secrets                                              # Contains webhook URL for Discord channel
+from secrets import DISCORD_WEBHOOK_URL                     # Contains webhook URL for Discord channel
 
-
-## Variables ##
-
-# Options
+## Options ##
 console = True
 log = True
 open_browser = True
 play_sounds = True
 database = True
 discord = True
+
+## Variables ##
 
 # Save original standard output (for logging to twitter.log)
 original_stdout = sys.stdout
@@ -42,6 +41,8 @@ tw = TwitterScraper()
 
 # Table name
 table_name = "twitter"
+
+
 
 # Variables for loop
 new_tweet_id = ""
@@ -109,13 +110,14 @@ def print_console():
     print("Tweet URL:", make_url(), "\n")
 
 # Message Discord
-def message_discord_text():
+""" def message_discord_text():
     embed = DiscordEmbed(title='@' + twitter_handle, description=new_tweet_text, color='03b2f8')
     # add fields to embed
-    embed.add_embed_field(name='URL', value=url)
+    embed.add_embed_field(name='Keywords', value=regex)
+    embed.add_embed_field(name='URL', value=make_url())
     # add embed object to webhook
     webhook.add_embed(embed)
-    response = webhook.execute()
+    response = webhook.execute() """
 
 # Create twitter table if it doesn't exist
 if database:  
@@ -123,7 +125,7 @@ if database:
     try:
         create_table(table_name, table_query)
     except:
-        print("Database not detected")
+        print("Create table error")
 
 ## Run once before looping ##
 # Get Twitter profile data
@@ -197,10 +199,6 @@ while True:
                 webbrowser.open(new_profile_banner, new=1)
     except:
         print("Bad tweet \n")
-
-    ## Send tweet to discord
-    if discord and new_tweet_id > last_tweet_id:
-        message_discord_text()
     
     ## Print results to console ##
     if console:
@@ -227,6 +225,22 @@ while True:
         print("Tweet URL:", make_url(), "\n")
   
     #print_console()
+
+    ## Send tweet to discord
+    try:
+        # Discord web hook, URL defined in secrets.py
+        if discord and new_tweet_id > last_tweet_id:
+            webhook = DiscordWebhook(url=DISCORD_WEBHOOK_URL)
+            embed = DiscordEmbed(title='@' + twitter_handle, description=new_tweet_text, color='03b2f8')
+            # add fields to embed
+            if regex != None:
+                embed.add_embed_field(name='Keywords', value=regex)
+            embed.add_embed_field(name='URL', value=make_url())
+            # add embed object to webhook
+            webhook.add_embed(embed)
+            response = webhook.execute()
+    except:
+        print("Discord error", "\n")
 
     ## Print results to log if new tweet, profile URL changed, or banner changed ##
     try:
@@ -296,4 +310,4 @@ while True:
     i += 1
         
     ## Wait 5 seconds ##
-    time.sleep(5) 
+    time.sleep(5)
