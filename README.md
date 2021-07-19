@@ -1,6 +1,6 @@
 # Info
 
-This script was originally created to gain an advantage in crypto trading but can be used for other purposes. For example, logging all of an account's tweets in case of account deletion. It loops every 5 seconds and checks the last tweet of the specified account for keywords, photo changes, and banner changes. If a keyword is detected or an image changes, it plays a sound. It opens a new tab in the default browser to new tweets and images. Results are displayed in the console, sent to Discord, logged to twitter.log, and a PostgreSQL database (optional). Twitter API key not required.
+This script was originally created to gain an advantage in crypto trading but can be used for other purposes. For example, logging all of an account's tweets in case of tweet or account deletion. It loops every 5 seconds and checks the last tweet of the specified account for keywords, photo changes, and banner changes. If a keyword is detected or an image changes, it plays a sound. It opens a new tab in the default browser to new tweets and images. Results are displayed in the console, sent to Discord, logged to twitter.log, and a PostgreSQL database (optional). Twitter API key not required. 
 
 # Setup for Windows
 
@@ -20,7 +20,7 @@ Complete the rest of the steps if a database is desired
 
 Run "python3 twitter.py" to scrape the default account set in the argument parser definition
 
-Run "python3 twitter.py username" to scrape someone else.
+Run "python3 twitter.py username" to scrape a different account.
 Example: "python3 twitter.py michaeljburry"
 
 The keywords can be modified within twitter.py and are seperated by the | symbol
