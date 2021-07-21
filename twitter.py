@@ -37,7 +37,7 @@ console = args.noconsole
 log = args.nolog
 open_browser = args.nobrowser
 play_sounds = args.nosounds
-database = Targs.nodb
+database = args.nodb
 discord = args.nodiscord
 
 # Get Twitter handle from argument
