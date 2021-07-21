@@ -1,15 +1,16 @@
 # TODO consolidate more code into functions - regex, print_console, print_log, 
 # TODO check latest tweet ID entry in DB and add last_tweet info to log and DB if not present
 # TODO sentiment analysis
+# TODO add keyword list functionality and argument
 
 ## Modules ##
-from pytwitterscraper import TwitterScraper                 # Twitter scraper no API required
+from pytwitterscraper import TwitterScraper                 # Twitter web scraper - no API required
 import webbrowser                                           # Web browser
 import time                                                 # Wait
 import re                                                   # Regex
 import winsound                                             # Play Windows sounds
 import sys                                                  # Write to files
-import argparse                                             # Argument parser - change default to someone else if desired
+import argparse                                             # Argument parser
 import datetime                                             # Timestamp
 from db_functions import *                                  # Database functions
 from discord_webhook import DiscordWebhook, DiscordEmbed    # Discord webhook
@@ -17,13 +18,16 @@ from secrets import DISCORD_WEBHOOK_URL                     # Contains webhook U
 
 ## Variables ##
 
+# Keywords
+keywords = "Crypto|crypto|BTC|btc|Bitcoin|bitcoin|DOGE|Doge|doge|💦|🚀|🌙|🌕|🌜|🌛|CUM|Cum|cum|Rocket|rocket|Shib|shib|Moon|moon|Money|money|Economy|economy|Market|market"
+
 # Save original standard output (for logging to twitter.log)
 original_stdout = sys.stdout
 
 # Argument parser
 parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
 parser.add_argument("username", nargs="?", default="unusual_whales") # Change default twitter account here
-parser.add_argument("--tablename", nargs="?", action="store", default="twitter") # Change PostgreSQL table here
+parser.add_argument("--tablename", nargs="?", action="store", default="twitter") # Change default PostgreSQL table here
 parser.add_argument('--noconsole', action="store_false", default=True)
 parser.add_argument('--nolog', action="store_false", default=True)
 parser.add_argument('--nobrowser', action="store_false", default=True)
@@ -32,7 +36,7 @@ parser.add_argument('--nodb', action="store_false", default=True)
 parser.add_argument('--nodiscord', action="store_false", default=True)
 args = parser.parse_args()
 
-## Options ##
+## Options ## - Now controlled via argument parser ^
 console = args.noconsole
 log = args.nolog
 open_browser = args.nobrowser
@@ -40,22 +44,19 @@ play_sounds = args.nosounds
 database = args.nodb
 discord = args.nodiscord
 
-# Get Twitter handle from argument
+# Get Twitter account from argument
 twitter_handle = args.username
+
+# Get table name from argument
+table_name = args.tablename
 
 # Create twitter scraper object
 tw = TwitterScraper()
-
-# Table name
-table_name = args.tablename
 
 # Variables for loop
 new_tweet_id = ""
 new_tweet_text = ""
 new_tweet_hashtags = ""
-
-# Keywords
-keywords = "Crypto|crypto|BTC|btc|Bitcoin|bitcoin|DOGE|Doge|doge|💦|🚀|🌙|🌕|🌜|🌛|CUM|Cum|cum|Rocket|rocket|Shib|shib|Moon|moon|Money|money|Economy|economy|Market|market"
 
 # Regular expression pattern for uppercase characters
 regex_uppercase_pattern = ['[A-Z]+']
@@ -90,7 +91,7 @@ def make_url():
     url = "https://twitter.com/" + twitter_handle + "/status/" + format(new_tweet_id)
     return url
 
-# Print to console
+# Print to console - Unused, need to create regex function first
 def print_console():
     print("Iteration:", i)
     print("Timestamp:", timestamp)
@@ -114,7 +115,7 @@ def print_console():
         print("Regex error")
     print("Tweet URL:", make_url(), "\n")
 
-# Message Discord
+# Message Discord - This function causes the script to lag for some reason
 """ def message_discord_text():
     embed = DiscordEmbed(title='@' + twitter_handle, description=new_tweet_text, color='03b2f8')
     # add fields to embed
@@ -124,7 +125,7 @@ def print_console():
     webhook.add_embed(embed)
     response = webhook.execute() """
 
-# Create twitter table if it doesn't exist
+# Create PostgreSQL table if it doesn't exist
 if database:  
     table_query = "CREATE TABLE " + table_name + " (" + table_name + "_pkey SERIAL PRIMARY KEY, twitter_handle TEXT, tweet_id NUMERIC, hashtags TEXT, tweet_text TEXT, keywords TEXT, uppercase TEXT, tweet_url TEXT, profile_photo_url TEXT, profile_banner_url TEXT, timestamp TEXT);" 
     try:
@@ -164,6 +165,7 @@ except:
     print("Try again")
     exit()
 
+# Check if initial tweet is in database and add it if not - need other functions first
 """ if check_table(last_tweet_id, tweet_id, twitter) != True:
     row_query = "INSERT INTO " + table_name + " (twitter_handle, tweet_id, hashtags, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + new_tweet_hashtags + "', '" + format_tweet(new_tweet_text) + "', '" + format(regex) + "', '" + regex_uppercase + "', '" + make_url() + "', '" + new_profile_photo + "', '" + new_profile_banner + "', '" + timestamp + "');"
         try:
@@ -233,7 +235,7 @@ while True:
 
     ## Send tweet to discord
     try:
-        # Discord web hook, URL defined in secrets.py
+        # Discord web hook URL defined in secrets.py
         if discord and new_tweet_id > last_tweet_id:
             webhook = DiscordWebhook(url=DISCORD_WEBHOOK_URL)
             embed = DiscordEmbed(title='@' + twitter_handle, description=new_tweet_text, color='03b2f8')
@@ -284,7 +286,7 @@ while True:
     except:
         print("Log error \n")
 
-    ## Update twitter table in database ##
+    ## Update table in database ##
     if database and (new_tweet_id > last_tweet_id or new_profile_photo != profile_photo or new_profile_banner != profile_banner):
         row_query = "INSERT INTO " + table_name + " (twitter_handle, tweet_id, hashtags, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + new_tweet_hashtags + "', '" + format_tweet(new_tweet_text) + "', '" + format(regex) + "', '" + regex_uppercase + "', '" + make_url() + "', '" + new_profile_photo + "', '" + new_profile_banner + "', '" + timestamp + "');"
         try:
