@@ -23,7 +23,7 @@ original_stdout = sys.stdout
 # Argument parser
 parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
 parser.add_argument("username", nargs="?", default="unusual_whales") # Change default twitter account here
-parser.add_argument("tablename", nargs="?", default="twitter") # Change PostgreSQL table here
+parser.add_argument("--tablename", nargs="?", action="store", default="twitter") # Change PostgreSQL table here
 parser.add_argument('--noconsole', action="store_false", default=True)
 parser.add_argument('--nolog', action="store_false", default=True)
 parser.add_argument('--nobrowser', action="store_false", default=True)
