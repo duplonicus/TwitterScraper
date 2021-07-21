@@ -4,7 +4,7 @@
 # TODO add keyword list functionality and argument
 
 ## Modules ##
-from pytwitterscraper import TwitterScraper                 # Twitter web scraper - no API required
+from pytwitterscraper import TwitterScraper                 # Twitter scraper - no API key required
 import webbrowser                                           # Web browser
 import time                                                 # Wait
 import re                                                   # Regex
