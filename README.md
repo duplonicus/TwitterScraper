@@ -10,7 +10,7 @@ This script was originally created to gain an advantage in crypto trading but ca
 
 3. Rename new_secrets.py to secrets.py and fill in a Discord webhook URL
 
-  Complete the rest of the steps if a database is desired:
+   Complete the rest of the steps if a database is desired:
 
 4. Install PostgreSQL and create a database
 
