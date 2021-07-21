@@ -1,6 +1,6 @@
 # Info
 
-This script was originally created to gain an advantage in crypto trading but can be used for other purposes. For example, logging all of an account's tweets in case of tweet or account deletion. It loops every 5 seconds and checks the last tweet of the specified account for keywords, photo changes, and banner changes. If a keyword is detected or an image changes, it plays a sound. It opens a new tab in the default browser to new tweets and images. Results are displayed in the console, sent to Discord, logged to twitter.log, and a PostgreSQL database (optional). Comand line arguments can be supplied for username, table name, and to disable cetain functionality. Twitter API key not required. 
+This script was originally created to gain an advantage in crypto trading but can be used for other purposes. For example, logging all of an account's tweets in case of tweet or account deletion. It loops every 5 seconds and checks the last tweet of the specified account for keywords, profile photo changes, and banner changes. If a keyword is detected or an image changes, it plays a sound. It opens a new tab in the default browser to new tweets and images. Results are displayed in the console, sent to Discord, logged to twitter.log, and a PostgreSQL database (optional). Comand line arguments can be supplied for username, table name, and to disable cetain functionality. Twitter API key not required. 
 
 # Setup for Windows
 
@@ -26,7 +26,8 @@ Example: "python3 twitter.py michaeljburry"
 Run "python3 twitter.py username --tablename newtable" to create and use a different table in the database.  
 Example: "python3 twitter.py michaeljburry --tablename stocks"
 
-All functioinality is enabled by default but can be turned off with --noconsole, --nolog, --nobrowser, --nosounds, --nodb, and --nodiscord.  
+All functioinality is enabled by default but can be turned off with --noconsole, --nolog, --nobrowser, --nosounds,  
+--nodb, and --nodiscord.  
 Example: "python3 twitter.py michaeljburry --tablename stocks --nobrowser --nodiscord"
 
 The keywords can be modified within twitter.py and are seperated by the | symbol.
