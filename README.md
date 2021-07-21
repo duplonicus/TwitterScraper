@@ -18,7 +18,7 @@ This script was originally created to gain an advantage in crypto trading but ca
 
 # How to use
 
-Run "python3 twitter.py" to scrape the default account set in the argument parser definition
+Run "python3 twitter.py" to scrape the default account set in the argument parser definition.
 
 Run "python3 twitter.py username" to scrape a different account.  
 Example: "python3 twitter.py michaeljburry"
@@ -29,7 +29,7 @@ Example: "python3 twitter.py michaeljburry --tablename stocks"
 All functioinality is enabled by default but can be turned off with --noconsole, --nolog, --nobrowser, --nosounds, --nodb, and --nodiscord.  
 Example: "python3 twitter.py michaeljburry --tablename stocks --nobrowser --nodiscord"
 
-The keywords can be modified within twitter.py and are seperated by the | symbol
+The keywords can be modified within twitter.py and are seperated by the | symbol.
 
 # Screenshots
 
