@@ -15,14 +15,6 @@ from db_functions import *                                  # Database functions
 from discord_webhook import DiscordWebhook, DiscordEmbed    # Discord webhook
 from secrets import DISCORD_WEBHOOK_URL                     # Contains webhook URL for Discord channel
 
-## Options ##
-console = True
-log = True
-open_browser = True
-play_sounds = True
-database = True
-discord = True
-
 ## Variables ##
 
 # Save original standard output (for logging to twitter.log)
@@ -31,7 +23,22 @@ original_stdout = sys.stdout
 # Argument parser
 parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
 parser.add_argument("username", nargs="?", default="unusual_whales") # Change default twitter account here
+parser.add_argument("tablename", nargs="?", default="twitter") # Change PostgreSQL table here
+parser.add_argument('--noconsole', action="store_false", default=True)
+parser.add_argument('--nolog', action="store_false", default=True)
+parser.add_argument('--nobrowser', action="store_false", default=True)
+parser.add_argument('--nosounds', action="store_false", default=True)
+parser.add_argument('--nodb', action="store_false", default=True)
+parser.add_argument('--nodiscord', action="store_false", default=True)
 args = parser.parse_args()
+
+## Options ##
+console = args.noconsole
+log = args.nolog
+open_browser = args.nobrowser
+play_sounds = args.nosounds
+database = Targs.nodb
+discord = args.nodiscord
 
 # Get Twitter handle from argument
 twitter_handle = args.username
@@ -40,9 +47,7 @@ twitter_handle = args.username
 tw = TwitterScraper()
 
 # Table name
-table_name = "twitter"
-
-
+table_name = args.tablename
 
 # Variables for loop
 new_tweet_id = ""
