@@ -32,7 +32,7 @@ def create_table(name, query):
         # connect to the PostgreSQL server
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
-        # check if table exists
+        # check if table exists - returns true or false
         cur.execute("select exists(select * from information_schema.tables where table_name='" + name + "')")
         table_exists = cur.fetchone()[0]
         # create the table if it doesn't exist
