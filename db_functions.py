@@ -1,5 +1,5 @@
-import psycopg2
-from config import config
+import psycopg2            # PostgreSQL functionality
+from config import config  # Read database connection info from db.ini
 
 __all__ = ["new_row", "create_table", "check_table"]
 
@@ -32,9 +32,10 @@ def create_table(name, query):
         # connect to the PostgreSQL server
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
-        # create table if it doesn't already exist
+        # check if table exists
         cur.execute("select exists(select * from information_schema.tables where table_name='" + name + "')")
         table_exists = cur.fetchone()[0]
+        # create the table if it doesn't exist
         if table_exists != True:
             cur.execute(query)
         # close communication with the PostgreSQL database server
