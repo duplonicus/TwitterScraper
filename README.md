@@ -34,7 +34,7 @@ The keywords can be modified within twitter.py and are seperated by the | symbol
 
 # Screenshots
 
-![Screenshot](https://i.imgur.com/KvDBJRf.png)
+![Screenshot](https://i.imgur.com/h8KvGd6.png)
 
 ![Screenshot](https://i.imgur.com/0SIqCVO.png)
 
