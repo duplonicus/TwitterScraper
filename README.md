@@ -36,6 +36,6 @@ The keywords can be modified within twitter.py and are seperated by the | symbol
 
 ![Screenshot](https://i.imgur.com/h8KvGd6.png)
 
-![Screenshot](https://i.imgur.com/0SIqCVO.png)
+![Screenshot](https://i.imgur.com/dpxorp8.png)
 
 ![Screenshot](https://i.imgur.com/lvAWToB.png)
