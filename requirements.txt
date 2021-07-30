@@ -1,4 +1,4 @@
 pytwitterscraper
 psycopg2
 config
-discord_webhook
+discord-webhook
