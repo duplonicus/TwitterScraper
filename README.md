@@ -26,7 +26,7 @@ Example: "python3 twitter.py michaeljburry"
 Run "python3 twitter.py username --tablename newtable" to create and use a different table in the database.  
 Example: "python3 twitter.py michaeljburry --tablename stocks"
 
-Keywords are stored in keywords.txt. Each word is on a new line. Specify a different file with --wordlist.
+Keywords are stored in keywords.txt. Each word is on a new line. Specify a different file with --wordlist.  
 Example: python3 twitter.py michaeljburry --wordlist stocks.txt
 
 All functioinality is enabled by default but can be turned off with --noconsole, --nolog, --nobrowser, --nosounds,  
