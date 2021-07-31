@@ -4,6 +4,10 @@ BTC
 btc
 Bitcoin
 bitcoin
+Eth
+eth
+Ethereum
+ethereum
 DOGE
 Doge
 doge
