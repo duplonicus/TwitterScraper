@@ -1,7 +1,7 @@
 # TODO consolidate more code into functions - regex, print_console, print_log, 
 # TODO check latest tweet ID entry in DB and add last_tweet info to log and DB if not present
 # TODO sentiment analysis
-# TODO add keyword list functionality and argument
+# TODO add keyword list functionality and argument - DONE
 
 ## Modules ##
 from pytwitterscraper import TwitterScraper                 # Twitter scraper - no API key required
@@ -18,9 +18,6 @@ from secrets import DISCORD_WEBHOOK_URL                     # Contains webhook U
 
 ## Variables ##
 
-# Keywords
-keywords = "Crypto|crypto|BTC|btc|Bitcoin|bitcoin|DOGE|Doge|doge|💦|🚀|🌙|🌕|🌜|🌛|CUM|Cum|cum|Rocket|rocket|Shib|shib|Moon|moon|Money|money|Economy|economy|Market|market"
-
 # Save original standard output (for logging to twitter.log)
 original_stdout = sys.stdout
 
@@ -34,6 +31,7 @@ parser.add_argument('--nobrowser', action="store_false", default=True)
 parser.add_argument('--nosounds', action="store_false", default=True)
 parser.add_argument('--nodb', action="store_false", default=True)
 parser.add_argument('--nodiscord', action="store_false", default=True)
+parser.add_argument("--wordlist", nargs="?", action="store", default="keywords.txt") # Change default keyword list here
 args = parser.parse_args()
 
 ## Options ## - Now controlled via argument parser ^
@@ -43,6 +41,7 @@ open_browser = args.nobrowser
 play_sounds = args.nosounds
 database = args.nodb
 discord = args.nodiscord
+wordlist = args.wordlist
 
 # Get Twitter account from argument
 twitter_handle = args.username
@@ -73,13 +72,20 @@ i = 1
 def listToString(s):     
     str1 = ""      
     for ele in s: 
-        str1 += ele      
+        str1 += ele + " "      
     return str1
 
 # Remove characters from regex  
 def format_regex(r):
-    r.replace("\'", "").replace(" ", "").replace("[", "").replace("]", "").replace(",", "")
+    r.replace("\'", "").replace(" ", "").replace("[", "").replace("]", "").replace(",", " ")
     return r
+
+# Search keyword list and format
+def find_keywords():
+    keywords = open(wordlist, "r", encoding="utf-8")
+    keywords_regex_string = keywords.read().replace("\n", "|")
+    r = re.findall(keywords_regex_string, new_tweet_text)
+    return format_regex(listToString(r))
 
 # Escape character that break INSERT
 def format_tweet(t):
@@ -92,7 +98,7 @@ def make_url():
     return url
 
 # Print to console - Unused, need to create regex function first
-def print_console():
+""" def print_console():
     print("Iteration:", i)
     print("Timestamp:", timestamp)
     print("Twitter Handle: @" + twitter_handle)
@@ -113,7 +119,7 @@ def print_console():
         print("Upper Case:", regex_uppercase)
     except:
         print("Regex error")
-    print("Tweet URL:", make_url(), "\n")
+    print("Tweet URL:", make_url(), "\n") """
 
 # Message Discord - This function causes the script to lag for some reason
 """ def message_discord_text():
@@ -131,7 +137,7 @@ if database:
     try:
         create_table(table_name, table_query)
     except:
-        print("Create table error")
+        print("Table error")
 
 ## Run once before looping ##
 # Get Twitter profile data
@@ -175,15 +181,15 @@ except:
 
 ## Scrape Twitter and open in browser if new tweet, profile photo changed, or banner changed ##
 while True:
+    # Get new profile data
     try:
-        # Get new profile data
         new_profile = tw.get_profile(name=twitter_handle).__dict__
         new_profile_photo = new_profile["profileurl"]
         new_profile_banner = new_profile["bannerurl"]
     except:
         print("Bad profile \n")
+    # Get 2 latest tweets and compare IDs to filter up to 1 pinned tweet
     try:
-        # Get 2 latest tweets and compare IDs to filter up to 1 pinned tweet
         new_tweet_contents = tw.get_tweets(twitter_id, count=2).contents
         new_tweet_id = new_tweet_contents[1]["id"]
         new_tweet_id_2 = new_tweet_contents[0]["id"]
@@ -194,6 +200,7 @@ while True:
             newest_tweet = 1
         new_tweet_text = new_tweet_contents[newest_tweet]["text"]
         new_tweet_hashtags = listToString(new_tweet_contents[newest_tweet]["hashtags"])
+        tweet_keywords  = find_keywords()
         # Compare new tweet to last tweet
         if open_browser:
             if new_tweet_id != last_tweet_id and new_tweet_id > last_tweet_id:
@@ -212,18 +219,11 @@ while True:
         print("Iteration:", i)
         print("Timestamp:", timestamp)
         print("Twitter Handle: @" + twitter_handle)
-        # Tweets
         print("Tweet ID:", new_tweet_id)
         print("Tweet Hashtags:", listToString(new_tweet_hashtags))
         print("Tweet Text:", new_tweet_text)       
         try:
-            # Regular expression for keywords
-            regex = re.search(keywords, new_tweet_text + new_tweet_hashtags)
-            try:
-                print("Keywords:", regex[0])
-                regex = regex[0]
-            except:
-                print("Keywords:", regex)
+            print("Keywords:", tweet_keywords)
             for p in regex_uppercase_pattern:
                 regex_uppercase = format_regex(listToString(re.findall(p, new_tweet_text)))
             print("Upper Case:", regex_uppercase)
@@ -240,8 +240,8 @@ while True:
             webhook = DiscordWebhook(url=DISCORD_WEBHOOK_URL)
             embed = DiscordEmbed(title='@' + twitter_handle, description=new_tweet_text, color='03b2f8')
             # add fields to embed
-            if regex != None:
-                embed.add_embed_field(name='Keywords', value=regex)
+            if tweet_keywords != None:
+                embed.add_embed_field(name='Keywords', value=tweet_keywords)
             embed.add_embed_field(name='URL', value=make_url())
             # add embed object to webhook
             webhook.add_embed(embed)
@@ -260,7 +260,7 @@ while True:
                 print("Tweet ID:", new_tweet_id)
                 print("Tweet Hashtags:", listToString(new_tweet_hashtags))
                 print("Tweet Text:", new_tweet_text)
-                print("Keywords:", regex)
+                print("Keywords:", tweet_keywords)
                 print("Upper Case:", regex_uppercase)
                 print("Tweet URL:", make_url(), "\n")
                 # Reset the standard output
@@ -288,7 +288,7 @@ while True:
 
     ## Update table in database ##
     if database and (new_tweet_id > last_tweet_id or new_profile_photo != profile_photo or new_profile_banner != profile_banner):
-        row_query = "INSERT INTO " + table_name + " (twitter_handle, tweet_id, hashtags, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + new_tweet_hashtags + "', '" + format_tweet(new_tweet_text) + "', '" + format(regex) + "', '" + regex_uppercase + "', '" + make_url() + "', '" + new_profile_photo + "', '" + new_profile_banner + "', '" + timestamp + "');"
+        row_query = "INSERT INTO " + table_name + " (twitter_handle, tweet_id, hashtags, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + new_tweet_hashtags + "', '" + format_tweet(new_tweet_text) + "', '" + format(tweet_keywords) + "', '" + regex_uppercase + "', '" + make_url() + "', '" + new_profile_photo + "', '" + new_profile_banner + "', '" + timestamp + "');"
         try:
             new_row(row_query) 
         except:
@@ -296,7 +296,7 @@ while True:
     
     ## Play sound if keyword found or image changed ##
     try:
-        if play_sounds and ((re.search(keywords, new_tweet_text) and new_tweet_id > last_tweet_id) or (new_profile_photo != profile_photo) or (new_profile_banner != profile_banner)):
+        if play_sounds and ((tweet_keywords != None) and (new_tweet_id > last_tweet_id) or (new_profile_photo != profile_photo) or (new_profile_banner != profile_banner)):
             winsound.PlaySound("sound2.wav", winsound.SND_ASYNC)
     except:
         print("Error playing sound", "\n")
