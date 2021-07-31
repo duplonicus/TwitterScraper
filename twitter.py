@@ -9,7 +9,7 @@ import webbrowser                                           # Web browser
 import time                                                 # Wait
 import re                                                   # Regex
 import winsound                                             # Play Windows sounds
-import sys                                                  # Write to files
+import sys                                                  # Read/write to files
 import argparse                                             # Argument parser
 import datetime                                             # Timestamp
 from db_functions import *                                  # Database functions
@@ -24,6 +24,7 @@ original_stdout = sys.stdout
 # Argument parser
 parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
 parser.add_argument("username", nargs="?", default="unusual_whales") # Change default twitter account here
+parser.add_argument("--wordlist", nargs="?", action="store", default="keywords.txt") # Change default keyword list here
 parser.add_argument("--tablename", nargs="?", action="store", default="twitter") # Change default PostgreSQL table here
 parser.add_argument('--noconsole', action="store_false", default=True)
 parser.add_argument('--nolog', action="store_false", default=True)
@@ -31,7 +32,6 @@ parser.add_argument('--nobrowser', action="store_false", default=True)
 parser.add_argument('--nosounds', action="store_false", default=True)
 parser.add_argument('--nodb', action="store_false", default=True)
 parser.add_argument('--nodiscord', action="store_false", default=True)
-parser.add_argument("--wordlist", nargs="?", action="store", default="keywords.txt") # Change default keyword list here
 args = parser.parse_args()
 
 ## Options ## - Now controlled via argument parser ^
@@ -68,7 +68,7 @@ i = 1
 
 ## Functions ##
 
-# Convert a list to a string  
+# Convert a list to a string with spaces between words  
 def listToString(s):     
     str1 = ""      
     for ele in s: 
@@ -82,9 +82,13 @@ def format_regex(r):
 
 # Search keyword list and format
 def find_keywords():
+    # Open wordlist
     keywords = open(wordlist, "r", encoding="utf-8")
+    # Format wordlist for regex
     keywords_regex_string = keywords.read().replace("\n", "|")
+    # Find all keywords in new tweet with regex
     r = re.findall(keywords_regex_string, new_tweet_text)
+    # Convert r to string, remove special characters, and return r
     return format_regex(listToString(r))
 
 # Escape character that break INSERT
@@ -220,15 +224,12 @@ while True:
         print("Timestamp:", timestamp)
         print("Twitter Handle: @" + twitter_handle)
         print("Tweet ID:", new_tweet_id)
-        print("Tweet Hashtags:", listToString(new_tweet_hashtags))
-        print("Tweet Text:", new_tweet_text)       
-        try:
-            print("Keywords:", tweet_keywords)
-            for p in regex_uppercase_pattern:
-                regex_uppercase = format_regex(listToString(re.findall(p, new_tweet_text)))
-            print("Upper Case:", regex_uppercase)
-        except:
-            print("Regex error")
+        print("Tweet Text:", new_tweet_text)   
+        print("Tweet Hashtags:", listToString(new_tweet_hashtags))    
+        print("Keywords:", tweet_keywords)
+        for p in regex_uppercase_pattern:
+            regex_uppercase = format_regex(listToString(re.findall(p, new_tweet_text)))
+        print("Upper Case:", regex_uppercase)
         print("Tweet URL:", make_url(), "\n")
   
     #print_console()
@@ -257,9 +258,9 @@ while True:
                 sys.stdout = log 
                 print("Timestamp:", timestamp)
                 print("Twitter Handle: @" + twitter_handle)
-                print("Tweet ID:", new_tweet_id)
-                print("Tweet Hashtags:", listToString(new_tweet_hashtags))
+                print("Tweet ID:", new_tweet_id)                
                 print("Tweet Text:", new_tweet_text)
+                print("Tweet Hashtags:", listToString(new_tweet_hashtags))
                 print("Keywords:", tweet_keywords)
                 print("Upper Case:", regex_uppercase)
                 print("Tweet URL:", make_url(), "\n")
@@ -296,7 +297,7 @@ while True:
     
     ## Play sound if keyword found or image changed ##
     try:
-        if play_sounds and ((tweet_keywords != None) and (new_tweet_id > last_tweet_id) or (new_profile_photo != profile_photo) or (new_profile_banner != profile_banner)):
+        if play_sounds and ((tweet_keywords != "") and (new_tweet_id > last_tweet_id) or (new_profile_photo != profile_photo) or (new_profile_banner != profile_banner)):
             winsound.PlaySound("sound2.wav", winsound.SND_ASYNC)
     except:
         print("Error playing sound", "\n")
