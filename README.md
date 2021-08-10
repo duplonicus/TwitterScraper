@@ -6,7 +6,7 @@ This script was originally created to gain an advantage in crypto trading but ca
 
 1. Install Python3
 
-2. Run "pip install -r requirement.txt"
+2. Run "pip install -r requirements.txt"
 
 3. Rename new_secrets.py to secrets.py and fill in a Discord webhook URL
 
