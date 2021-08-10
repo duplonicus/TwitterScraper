@@ -1,7 +1,6 @@
 # TODO consolidate more code into functions - regex, print_console, print_log, 
 # TODO check latest tweet ID entry in DB and add last_tweet info to log and DB if not present
 # TODO sentiment analysis
-# TODO add keyword list functionality and argument - DONE
 
 ## Modules ##
 from pytwitterscraper import TwitterScraper                 # Twitter scraper - no API key required
@@ -89,9 +88,10 @@ def find_keywords():
     # Find all keywords in new tweet with regex
     r = re.findall(keywords_regex_string, new_tweet_text)
     # Convert r to string, remove special characters, and return r
-    return format_regex(listToString(r))
+    if r != None:
+        return format_regex(listToString(r))
 
-# Escape character that break INSERT
+# Escape characters that break INSERT
 def format_tweet(t):
     t.replace("\'", "\\\'").replace("\"", "\\\"")
     return t
@@ -100,40 +100,6 @@ def format_tweet(t):
 def make_url():
     url = "https://twitter.com/" + twitter_handle + "/status/" + format(new_tweet_id)
     return url
-
-# Print to console - Unused, need to create regex function first
-""" def print_console():
-    print("Iteration:", i)
-    print("Timestamp:", timestamp)
-    print("Twitter Handle: @" + twitter_handle)
-    # Tweets
-    print("Tweet ID:", new_tweet_id)
-    print("Tweet Hashtags:", listToString(new_tweet_hashtags))
-    print("Tweet Text:", new_tweet_text)       
-    try:
-        # Regular expression for keywords
-        regex = re.search(keywords, new_tweet_text + new_tweet_hashtags)
-        try:
-            print("Keywords:", regex[0])
-            regex = regex[0]
-        except:
-            print("Keywords:", regex)
-        for p in regex_uppercase_pattern:
-            regex_uppercase = format_regex(listToString(re.findall(p, new_tweet_text)))
-        print("Upper Case:", regex_uppercase)
-    except:
-        print("Regex error")
-    print("Tweet URL:", make_url(), "\n") """
-
-# Message Discord - This function causes the script to lag for some reason
-""" def message_discord_text():
-    embed = DiscordEmbed(title='@' + twitter_handle, description=new_tweet_text, color='03b2f8')
-    # add fields to embed
-    embed.add_embed_field(name='Keywords', value=regex)
-    embed.add_embed_field(name='URL', value=make_url())
-    # add embed object to webhook
-    webhook.add_embed(embed)
-    response = webhook.execute() """
 
 # Create PostgreSQL table if it doesn't exist
 if database:  
@@ -239,11 +205,11 @@ while True:
         # Discord web hook URL defined in secrets.py
         if discord and new_tweet_id > last_tweet_id:
             webhook = DiscordWebhook(url=DISCORD_WEBHOOK_URL)
-            embed = DiscordEmbed(title='@' + twitter_handle, description=new_tweet_text, color='03b2f8')
+            embed = DiscordEmbed(title='@' + twitter_handle, description=format_tweet(new_tweet_text), color='03b2f8')
             # add fields to embed
-            if tweet_keywords != None:
+            if tweet_keywords:
                 embed.add_embed_field(name='Keywords', value=tweet_keywords)
-            embed.add_embed_field(name='URL', value=make_url())
+            embed.add_embed_field(name='URL', value=make_url())      
             # add embed object to webhook
             webhook.add_embed(embed)
             response = webhook.execute()
