@@ -86,7 +86,7 @@ def find_keywords():
     # Format wordlist for regex
     keywords_regex_string = keywords.read().replace("\n", "|")
     # Find all keywords in new tweet with regex
-    r = re.findall(keywords_regex_string, new_tweet_text)
+    r = re.findall(keywords_regex_string, new_tweet_text, re.IGNORECASE)
     # Convert r to string, remove special characters, and return r
     if r != None:
         return format_regex(listToString(r))
