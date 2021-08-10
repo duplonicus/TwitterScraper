@@ -98,12 +98,12 @@ def format_tweet(t):
 
 # Make tweet URL - this can also be retrieved from new_tweet_contents with ["url"]
 def make_url():
-    url = "https://twitter.com/" + twitter_handle + "/status/" + format(new_tweet_id)
+    url = f"https://twitter.com/{twitter_handle}/status/{format(new_tweet_id)}"
     return url
 
 # Create PostgreSQL table if it doesn't exist
 if database:  
-    table_query = "CREATE TABLE " + table_name + " (" + table_name + "_pkey SERIAL PRIMARY KEY, twitter_handle TEXT, tweet_id NUMERIC, hashtags TEXT, tweet_text TEXT, keywords TEXT, uppercase TEXT, tweet_url TEXT, profile_photo_url TEXT, profile_banner_url TEXT, timestamp TEXT);" 
+    table_query = f"CREATE TABLE {table_name} ({table_name}_pkey SERIAL PRIMARY KEY, twitter_handle TEXT, tweet_id NUMERIC, hashtags TEXT, tweet_text TEXT, keywords TEXT, uppercase TEXT, tweet_url TEXT, profile_photo_url TEXT, profile_banner_url TEXT, timestamp TEXT);" 
     try:
         create_table(table_name, table_query)
     except:
@@ -171,6 +171,8 @@ while True:
         new_tweet_text = new_tweet_contents[newest_tweet]["text"]
         new_tweet_hashtags = listToString(new_tweet_contents[newest_tweet]["hashtags"])
         tweet_keywords  = find_keywords()
+        for p in regex_uppercase_pattern:
+            regex_uppercase = format_regex(listToString(re.findall(p, new_tweet_text)))
         # Compare new tweet to last tweet
         if open_browser:
             if new_tweet_id != last_tweet_id and new_tweet_id > last_tweet_id:
@@ -186,17 +188,15 @@ while True:
     
     ## Print results to console ##
     if console:
-        print("Iteration:", i)
-        print("Timestamp:", timestamp)
-        print("Twitter Handle: @" + twitter_handle)
-        print("Tweet ID:", new_tweet_id)
-        print("Tweet Text:", new_tweet_text)   
-        print("Tweet Hashtags:", listToString(new_tweet_hashtags))    
-        print("Keywords:", tweet_keywords)
-        for p in regex_uppercase_pattern:
-            regex_uppercase = format_regex(listToString(re.findall(p, new_tweet_text)))
-        print("Upper Case:", regex_uppercase)
-        print("Tweet URL:", make_url(), "\n")
+        print(f"Iteration: {i}")
+        print(f"Timestamp: {timestamp}")
+        print(f"Twitter Handle: @{twitter_handle}")
+        print(f"Tweet ID: {new_tweet_id}")
+        print(f"Tweet Text: {new_tweet_text}")   
+        print(f"Tweet Hashtags: {listToString(new_tweet_hashtags)}")    
+        print(f"Keywords: {tweet_keywords}")
+        print(f"Upper Case: {regex_uppercase}")
+        print(f"Tweet URL: {make_url()} \n")
   
     #print_console()
 
@@ -205,7 +205,7 @@ while True:
         # Discord web hook URL defined in secrets.py
         if discord and new_tweet_id > last_tweet_id:
             webhook = DiscordWebhook(url=DISCORD_WEBHOOK_URL)
-            embed = DiscordEmbed(title='@' + twitter_handle, description=format_tweet(new_tweet_text), color='03b2f8')
+            embed = DiscordEmbed(title=f'@{twitter_handle}', description=format_tweet(new_tweet_text), color='03b2f8')
             # add fields to embed
             if tweet_keywords:
                 embed.add_embed_field(name='Keywords', value=tweet_keywords)
@@ -214,40 +214,40 @@ while True:
             webhook.add_embed(embed)
             response = webhook.execute()
     except:
-        print("Discord error", "\n")
+        print("Discord error \n")
 
     ## Print results to log if new tweet, profile URL changed, or banner changed ##
     try:
         # Tweets
         if log and new_tweet_id > last_tweet_id:
             with open("twitter.log", "a", encoding="utf-8") as log:
-                sys.stdout = log 
-                print("Timestamp:", timestamp)
-                print("Twitter Handle: @" + twitter_handle)
-                print("Tweet ID:", new_tweet_id)                
-                print("Tweet Text:", new_tweet_text)
-                print("Tweet Hashtags:", listToString(new_tweet_hashtags))
-                print("Keywords:", tweet_keywords)
-                print("Upper Case:", regex_uppercase)
-                print("Tweet URL:", make_url(), "\n")
+                sys.stdout = log
+                print(f"Timestamp: {timestamp}")
+                print(f"Twitter Handle: @{twitter_handle}")
+                print(f"Tweet ID: {new_tweet_id}")
+                print(f"Tweet Text: {new_tweet_text}")   
+                print(f"Tweet Hashtags: {listToString(new_tweet_hashtags)}")    
+                print(f"Keywords: {tweet_keywords}")
+                print(f"Upper Case: {regex_uppercase}")
+                print(f"Tweet URL: {make_url()} \n")
                 # Reset the standard output
-                sys.stdout = original_stdout 
+                sys.stdout = original_stdout
         # Photo
         if new_profile_photo != profile_photo:
             with open("twitter.log", "a") as log:
                 sys.stdout = log 
-                print("Timestamp:", timestamp)
-                print("Twitter Handle: @" + twitter_handle)
-                print("Profile URL:", new_profile_photo, "\n")
+                print(f"Timestamp: {timestamp}")
+                print(f"Twitter Handle: @{twitter_handle}")
+                print(f"Profile URL: {new_profile_photo} \n")
                 # Reset the standard output
                 sys.stdout = original_stdout
         # Banner
         if new_profile_banner != profile_banner:
             with open("twitter.log", "a") as log:
                 sys.stdout = log 
-                print("Timestamp:", timestamp)
-                print("Twitter Handle: @" + twitter_handle)
-                print("Banner URL:", new_profile_banner, "\n")
+                print(f"Timestamp: {timestamp}")
+                print(f"Twitter Handle: @{twitter_handle}")
+                print(f"Banner URL: {new_profile_banner} \n")
                 # Reset the standard output
                 sys.stdout = original_stdout
     except:
@@ -255,7 +255,7 @@ while True:
 
     ## Update table in database ##
     if database and (new_tweet_id > last_tweet_id or new_profile_photo != profile_photo or new_profile_banner != profile_banner):
-        row_query = "INSERT INTO " + table_name + " (twitter_handle, tweet_id, hashtags, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + new_tweet_hashtags + "', '" + format_tweet(new_tweet_text) + "', '" + format(tweet_keywords) + "', '" + regex_uppercase + "', '" + make_url() + "', '" + new_profile_photo + "', '" + new_profile_banner + "', '" + timestamp + "');"
+        row_query = f"INSERT INTO {table_name} (twitter_handle, tweet_id, hashtags, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('{twitter_handle}', '{format(new_tweet_id)}', '{new_tweet_hashtags}', '{format_tweet(new_tweet_text)}', '{format(tweet_keywords)}', '{regex_uppercase}', '{make_url()}', '{new_profile_photo}', '{new_profile_banner}', '{timestamp}');"
         try:
             new_row(row_query) 
         except:
@@ -266,7 +266,7 @@ while True:
         if play_sounds and ((tweet_keywords != "") and (new_tweet_id > last_tweet_id) or (new_profile_photo != profile_photo) or (new_profile_banner != profile_banner)):
             winsound.PlaySound("sound2.wav", winsound.SND_ASYNC)
     except:
-        print("Error playing sound", "\n")
+        print("Error playing sound \n")
         
     # Feeling brave? Add exchange API code here
     # if re.search("DOGE|Doge|doge",new_tweet_text) and new_tweet_id > last_tweet_id:
