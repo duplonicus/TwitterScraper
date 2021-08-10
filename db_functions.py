@@ -33,7 +33,7 @@ def create_table(name, query):
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
         # check if table exists - returns true or false
-        cur.execute("select exists(select * from information_schema.tables where table_name='" + name + "')")
+        cur.execute(f"select exists(select * from information_schema.tables where table_name='{name}')")
         table_exists = cur.fetchone()[0]
         # create the table if it doesn't exist
         if table_exists != True:
@@ -58,7 +58,7 @@ def check_table(value, column, table):
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
         # create twitter table if it doesn't already exist
-        cur.execute("select exists(select " + column + " from " + table + " where " + column + "=" + value + ")")
+        cur.execute(f"select exists(select {column} from {table} where {column} = {value})")
         value_exists = cur.fetchone()[0]
         # close communication with the PostgreSQL database server
         cur.close()
