@@ -1,5 +1,4 @@
 # TODO consolidate more code into functions - regex, print_console, print_log, 
-# TODO check latest tweet ID entry in DB and add last_tweet info to log and DB if not present
 # TODO sentiment analysis
 
 ## Modules ##
@@ -65,41 +64,58 @@ timestamp = format(datetime.datetime.now())
 # Iterator
 i = 1
 
+
 ## Functions ##
 
-# Convert a list to a string with spaces between words  
-def listToString(s):     
+# Convert a list to a string 
+def list_to_string(s):     
     str1 = ""      
     for ele in s: 
-        str1 += ele + " "      
+        str1 += ele     
     return str1
 
-# Remove characters from regex  
+# Convert a list to a string adding spaces between elements
+def list_to_string_spaces(s):     
+    str1 = ""      
+    for ele in s: 
+        str1 += ele + " "     
+    return str1
+
+# Remove special characters from regex result string
 def format_regex(r):
     r.replace("\'", "").replace(" ", "").replace("[", "").replace("]", "").replace(",", " ")
     return r
 
 # Search keyword list and format
-def find_keywords():
+def find_keywords(tweet_text):
     # Open wordlist
     keywords = open(wordlist, "r", encoding="utf-8")
     # Format wordlist for regex
     keywords_regex_string = keywords.read().replace("\n", "|")
     # Find all keywords in new tweet with regex
-    r = re.findall(keywords_regex_string, new_tweet_text, re.IGNORECASE)
+    result = re.findall(keywords_regex_string, tweet_text, re.IGNORECASE)
     # Convert r to string, remove special characters, and return r
-    if r != None:
-        return format_regex(listToString(r))
+    if result != None:
+        return format_regex(list_to_string_spaces(result))
 
-# Escape characters that break INSERT
-def format_tweet(t):
-    t.replace("\'", "\\\'").replace("\"", "\\\"")
-    return t
+# Find upercase characters and create a string (they can be sneaky like that)
+def find_upercase(tweet_text):
+    for p in regex_uppercase_pattern:
+        result = format_regex(list_to_string(re.findall(p, tweet_text)))
+    return result
+
+# Remove characters that break INSERT
+def format_tweet(tweet_text):
+    tweet_text.replace("'", "").replace("\"", "")
+    return tweet_text
 
 # Make tweet URL - this can also be retrieved from new_tweet_contents with ["url"]
-def make_url():
-    url = f"https://twitter.com/{twitter_handle}/status/{format(new_tweet_id)}"
+def make_url(tweet_id):
+    url = f"https://twitter.com/{twitter_handle}/status/{format(tweet_id)}"
     return url
+
+
+## Run once before looping ##
 
 # Create PostgreSQL table if it doesn't exist
 if database:  
@@ -109,7 +125,6 @@ if database:
     except:
         print("Table error")
 
-## Run once before looping ##
 # Get Twitter profile data
 try:
     profile = tw.get_profile(name=twitter_handle).__dict__
@@ -117,7 +132,7 @@ try:
     profile_banner = profile["bannerurl"]
     twitter_id = profile["id"]
 except:
-    print("Bad initial profile")
+    print("Bad initial profile request")
     print("Try again")
     exit()
 
@@ -128,26 +143,24 @@ try:
     last_tweet_id_2 = last_tweet_contents[1]["id"]
     if last_tweet_id_2 > last_tweet_id:
         last_tweet_id = last_tweet_id_2
-        old_tweet = 0
+        newer_tweet = 0
     else:
-        old_tweet = 1
-    new_tweet_hashtags = listToString(last_tweet_contents[old_tweet]["hashtags"])
-    # Log to database if not present
-    #if check_table(last_tweet_id, tweet_id, table_name) == False
-        #last_tweet_query = "INSERT INTO " + table_name + " (twitter_handle, tweet_id, hashtags, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(last_tweet_id) + "', '" + last_tweet_hashtags + "', '" + format_tweet(last_tweet_text) + "', '" + format(regex) + "', '" + regex_uppercase + "', '" + make_url() + "', '" + new_profile_photo + "', '" + new_profile_banner + "', '" + timestamp + "');"
-        #new_row(last_tweet_query)
+        newer_tweet = 1
+    last_tweet_text = list_to_string(last_tweet_contents[newer_tweet]["text"])
+    last_tweet_hashtags = list_to_string(last_tweet_contents[newer_tweet]["hashtags"])
+    # Find keywords
+    last_tweet_keywords = find_keywords(last_tweet_text)
+    # Find uppercase characters    
+    last_regex_uppercase = find_upercase(last_tweet_text)
+    # Check database for last_tweet_id and add a new row if not present
+    if check_table(last_tweet_id, "tweet_id", table_name) == False:
+        last_tweet_query = f"INSERT INTO {table_name} (twitter_handle, tweet_id, hashtags, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('{twitter_handle}', '{format(last_tweet_id)}', '{last_tweet_hashtags}', '{format_tweet(last_tweet_text)}', '{format(last_tweet_keywords)}', '{last_regex_uppercase}', '{make_url(last_tweet_id)}', '{profile_photo}', '{profile_banner}', '{timestamp}');"
+        new_row(last_tweet_query)
 except:
     print("No tweets detected")
     print("Try again")
     exit()
 
-# Check if initial tweet is in database and add it if not - need other functions first
-""" if check_table(last_tweet_id, tweet_id, twitter) != True:
-    row_query = "INSERT INTO " + table_name + " (twitter_handle, tweet_id, hashtags, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('" + twitter_handle + "', '" + format(new_tweet_id) + "', '" + new_tweet_hashtags + "', '" + format_tweet(new_tweet_text) + "', '" + format(regex) + "', '" + regex_uppercase + "', '" + make_url() + "', '" + new_profile_photo + "', '" + new_profile_banner + "', '" + timestamp + "');"
-        try:
-            new_row(row_query) 
-        except:
-            print("Database not detected") """
 
 ## Scrape Twitter and open in browser if new tweet, profile photo changed, or banner changed ##
 while True:
@@ -169,14 +182,14 @@ while True:
         else:
             newest_tweet = 1
         new_tweet_text = new_tweet_contents[newest_tweet]["text"]
-        new_tweet_hashtags = listToString(new_tweet_contents[newest_tweet]["hashtags"])
-        tweet_keywords  = find_keywords()
+        new_tweet_hashtags = list_to_string(new_tweet_contents[newest_tweet]["hashtags"])
+        tweet_keywords  = find_keywords(new_tweet_text)
         for p in regex_uppercase_pattern:
-            regex_uppercase = format_regex(listToString(re.findall(p, new_tweet_text)))
+            regex_uppercase = format_regex(list_to_string(re.findall(p, new_tweet_text)))
         # Compare new tweet to last tweet
         if open_browser:
             if new_tweet_id != last_tweet_id and new_tweet_id > last_tweet_id:
-                webbrowser.open(make_url(), new=1)
+                webbrowser.open(make_url(new_tweet_id), new=1)
             # Compare profile URL
             if new_profile_photo != profile_photo:
                 webbrowser.open(new_profile_photo, new=1) 
@@ -193,12 +206,10 @@ while True:
         print(f"Twitter Handle: @{twitter_handle}")
         print(f"Tweet ID: {new_tweet_id}")
         print(f"Tweet Text: {new_tweet_text}")   
-        print(f"Tweet Hashtags: {listToString(new_tweet_hashtags)}")    
+        print(f"Tweet Hashtags: {list_to_string(new_tweet_hashtags)}")    
         print(f"Keywords: {tweet_keywords}")
         print(f"Upper Case: {regex_uppercase}")
-        print(f"Tweet URL: {make_url()} \n")
-  
-    #print_console()
+        print(f"Tweet URL: {make_url(new_tweet_id)} \n")
 
     ## Send tweet to discord
     try:
@@ -209,7 +220,7 @@ while True:
             # add fields to embed
             if tweet_keywords:
                 embed.add_embed_field(name='Keywords', value=tweet_keywords)
-            embed.add_embed_field(name='URL', value=make_url())      
+            embed.add_embed_field(name='URL', value=make_url(new_tweet_id))      
             # add embed object to webhook
             webhook.add_embed(embed)
             response = webhook.execute()
@@ -226,10 +237,10 @@ while True:
                 print(f"Twitter Handle: @{twitter_handle}")
                 print(f"Tweet ID: {new_tweet_id}")
                 print(f"Tweet Text: {new_tweet_text}")   
-                print(f"Tweet Hashtags: {listToString(new_tweet_hashtags)}")    
+                print(f"Tweet Hashtags: {list_to_string(new_tweet_hashtags)}")    
                 print(f"Keywords: {tweet_keywords}")
                 print(f"Upper Case: {regex_uppercase}")
-                print(f"Tweet URL: {make_url()} \n")
+                print(f"Tweet URL: {make_url(new_tweet_id)} \n")
                 # Reset the standard output
                 sys.stdout = original_stdout
         # Photo
