@@ -12,3 +12,4 @@ secrets.py
 dbot.py
 .env
 test.txt
+nltk-test.py

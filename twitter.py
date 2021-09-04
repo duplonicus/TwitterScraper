@@ -1,6 +1,3 @@
-# TODO consolidate more code into functions - regex, print_console, print_log, 
-# TODO sentiment analysis
-
 ## Modules ##
 from pytwitterscraper import TwitterScraper                 # Twitter scraper - no API key required
 import webbrowser                                           # Web browser
@@ -10,6 +7,8 @@ import winsound                                             # Play Windows sound
 import sys                                                  # Read/write to files
 import argparse                                             # Argument parser
 import datetime                                             # Timestamp
+import nltk                                                 # Natural Language Tool Kit
+from nltk.sentiment import SentimentIntensityAnalyzer       # Sentiment analyzer
 from db_functions import *                                  # Database functions
 from discord_webhook import DiscordWebhook, DiscordEmbed    # Discord webhook
 from secrets import DISCORD_WEBHOOK_URL                     # Contains webhook URL for Discord channel
@@ -50,6 +49,9 @@ table_name = args.tablename
 # Create twitter scraper object
 tw = TwitterScraper()
 
+# Create sentiment alayzer object
+sia = SentimentIntensityAnalyzer()
+
 # Variables for loop
 new_tweet_id = ""
 new_tweet_text = ""
@@ -81,10 +83,15 @@ def list_to_string_spaces(s):
         str1 += ele + " "     
     return str1
 
-# Remove special characters from regex result string
-def format_regex(r):
-    r.replace("\'", "").replace(" ", "").replace("[", "").replace("]", "").replace(",", " ")
-    return r
+# Remove special characters (used after converting regex result list to string)
+def remove_special_chars(regex_result):
+    regex_result.replace("\'", "").replace(" ", "").replace("[", "").replace("]", "").replace(",", " ")
+    return regex_result
+
+# Remove quotation marks that might break insert statements
+def remove_quotes(tweet_text):
+    tweet_text.replace("'", "").replace("\"", "")
+    return tweet_text
 
 # Search keyword list and format
 def find_keywords(tweet_text):
@@ -96,24 +103,25 @@ def find_keywords(tweet_text):
     result = re.findall(keywords_regex_string, tweet_text, re.IGNORECASE)
     # Convert r to string, remove special characters, and return r
     if result != None:
-        return format_regex(list_to_string_spaces(result))
+        return remove_special_chars(list_to_string_spaces(result))
 
 # Find upercase characters and create a string (they can be sneaky like that)
-def find_upercase(tweet_text):
+def find_uppercase(tweet_text):
     for p in regex_uppercase_pattern:
-        result = format_regex(list_to_string(re.findall(p, tweet_text)))
+        result = remove_special_chars(list_to_string(re.findall(p, tweet_text)))
     return result
-
-# Remove characters that break INSERT
-def format_tweet(tweet_text):
-    tweet_text.replace("'", "").replace("\"", "")
-    return tweet_text
 
 # Make tweet URL - this can also be retrieved from new_tweet_contents with ["url"]
 def make_url(tweet_id):
     url = f"https://twitter.com/{twitter_handle}/status/{format(tweet_id)}"
     return url
 
+# Find sentiment
+def find_sentiment(tweet: str):
+    if sia.polarity_scores(tweet)["compound"] > 0:
+        return "Positive"
+    else:
+        return "Negative"
 
 ## Run once before looping ##
 
@@ -136,7 +144,7 @@ except:
     print("Try again")
     exit()
 
-# Get last 2 tweets and compare IDs to filter up to 1 pinned tweet
+# Get last 2 tweets and compare IDs to filter up to 1 pinned tweet (a pinned tweet may not be the newest tweet)
 try:
     last_tweet_contents = tw.get_tweets(twitter_id, count=2).contents
     last_tweet_id = last_tweet_contents[0]["id"]
@@ -146,23 +154,30 @@ try:
         newer_tweet = 0
     else:
         newer_tweet = 1
+    # Get tweet text
     last_tweet_text = list_to_string(last_tweet_contents[newer_tweet]["text"])
-    last_tweet_hashtags = list_to_string(last_tweet_contents[newer_tweet]["hashtags"])
-    # Find keywords
+    # Get tweet hashtags
+    last_tweet_hashtags = list_to_string_spaces(last_tweet_contents[newer_tweet]["hashtags"])
+    # Find keywords in tweet text
     last_tweet_keywords = find_keywords(last_tweet_text)
-    # Find uppercase characters    
-    last_regex_uppercase = find_upercase(last_tweet_text)
+    # Find uppercase characters in tweet text
+    last_regex_uppercase = find_uppercase(last_tweet_text)
+    # Find sentiment
+    last_sentiment = find_sentiment(last_tweet_text)
     # Check database for last_tweet_id and add a new row if not present
-    if check_table(last_tweet_id, "tweet_id", table_name) == False:
-        last_tweet_query = f"INSERT INTO {table_name} (twitter_handle, tweet_id, hashtags, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('{twitter_handle}', '{format(last_tweet_id)}', '{last_tweet_hashtags}', '{format_tweet(last_tweet_text)}', '{format(last_tweet_keywords)}', '{last_regex_uppercase}', '{make_url(last_tweet_id)}', '{profile_photo}', '{profile_banner}', '{timestamp}');"
-        new_row(last_tweet_query)
+    try:
+        if check_table(last_tweet_id, "tweet_id", table_name) == False:
+            last_tweet_query = f"INSERT INTO {table_name} (twitter_handle, tweet_id, hashtags, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('{twitter_handle}', '{format(last_tweet_id)}', '{last_tweet_hashtags}', '{remove_quotes(last_tweet_text)}', '{format(last_tweet_keywords)}', '{last_regex_uppercase}', '{make_url(last_tweet_id)}', '{profile_photo}', '{profile_banner}', '{timestamp}');"
+            new_row(last_tweet_query)
+    except:
+        print("Database error")
 except:
     print("No tweets detected")
     print("Try again")
     exit()
 
 
-## Scrape Twitter and open in browser if new tweet, profile photo changed, or banner changed ##
+## Main loop - Scrape Twitter and open in browser if new tweet, profile photo changed, or banner changed ##
 while True:
     # Get new profile data
     try:
@@ -181,19 +196,25 @@ while True:
             new_tweet_id = new_tweet_id_2
         else:
             newest_tweet = 1
+        # Get text from newest tweet
         new_tweet_text = new_tweet_contents[newest_tweet]["text"]
+        # Get hashtags from newest tweet
         new_tweet_hashtags = list_to_string(new_tweet_contents[newest_tweet]["hashtags"])
+        # Find keywords in newest tweet text
         tweet_keywords  = find_keywords(new_tweet_text)
-        for p in regex_uppercase_pattern:
-            regex_uppercase = format_regex(list_to_string(re.findall(p, new_tweet_text)))
-        # Compare new tweet to last tweet
+        # Find uppercase chars in newest tweet text
+        regex_uppercase = find_uppercase(new_tweet_text)
+        # Find sentiment
+        new_sentiment = find_sentiment(new_tweet_text)
+        # Compare new tweet to last tweet and open changes in browser
         if open_browser:
+            # Compare tweets
             if new_tweet_id != last_tweet_id and new_tweet_id > last_tweet_id:
                 webbrowser.open(make_url(new_tweet_id), new=1)
-            # Compare profile URL
+            # Compare profile image URL
             if new_profile_photo != profile_photo:
                 webbrowser.open(new_profile_photo, new=1) 
-            # Compare banner URL
+            # Compare banner image URL
             if new_profile_banner != profile_banner:
                 webbrowser.open(new_profile_banner, new=1)
     except:
@@ -205,29 +226,50 @@ while True:
         print(f"Timestamp: {timestamp}")
         print(f"Twitter Handle: @{twitter_handle}")
         print(f"Tweet ID: {new_tweet_id}")
+        print(f"Sentiment: {new_sentiment}")
         print(f"Tweet Text: {new_tweet_text}")   
-        print(f"Tweet Hashtags: {list_to_string(new_tweet_hashtags)}")    
+        print(f"Tweet Hashtags: {list_to_string_spaces(new_tweet_hashtags)}")    
         print(f"Keywords: {tweet_keywords}")
         print(f"Upper Case: {regex_uppercase}")
         print(f"Tweet URL: {make_url(new_tweet_id)} \n")
 
-    ## Send tweet to discord
+    ## Send changes to discord ##
+    # Discord web hook URL defined in secrets.py
     try:
-        # Discord web hook URL defined in secrets.py
+        # Tweets
         if discord and new_tweet_id > last_tweet_id:
             webhook = DiscordWebhook(url=DISCORD_WEBHOOK_URL)
-            embed = DiscordEmbed(title=f'@{twitter_handle}', description=format_tweet(new_tweet_text), color='03b2f8')
-            # add fields to embed
+            embed = DiscordEmbed(title=f'@{twitter_handle}', description=remove_quotes(new_tweet_text), color='03b2f8')
+            # Add fields to embed
             if tweet_keywords:
                 embed.add_embed_field(name='Keywords', value=tweet_keywords)
+            embed.add_embed_field(name='Sentiment', value=new_sentiment) 
             embed.add_embed_field(name='URL', value=make_url(new_tweet_id))      
-            # add embed object to webhook
+            # Add embed object to webhook
+            webhook.add_embed(embed)
+            response = webhook.execute()
+        # Profile photo
+        if discord and new_profile_photo != profile_photo:
+            webhook = DiscordWebhook(url=DISCORD_WEBHOOK_URL)
+            embed = DiscordEmbed(title=f'@{twitter_handle}', description="New Profile Photo", color='03b2f8')
+            # Add fields to embed
+            embed.add_embed_field(name='Photo URL', value=profile_photo) 
+            # Add embed object to webhook
+            webhook.add_embed(embed)
+            response = webhook.execute()
+        # Profile banner
+        if discord and new_profile_banner != profile_banner:
+            webhook = DiscordWebhook(url=DISCORD_WEBHOOK_URL)
+            embed = DiscordEmbed(title=f'@{twitter_handle}', description="New Profile Banner", color='03b2f8')
+            # Add fields to embed
+            embed.add_embed_field(name='Photo Banner URL', value=profile_banner) 
+            # Add embed object to webhook
             webhook.add_embed(embed)
             response = webhook.execute()
     except:
         print("Discord error \n")
 
-    ## Print results to log if new tweet, profile URL changed, or banner changed ##
+    ## Print results to log if new tweet, profile image URL changed, or banner image URL changed ##
     try:
         # Tweets
         if log and new_tweet_id > last_tweet_id:
@@ -236,6 +278,7 @@ while True:
                 print(f"Timestamp: {timestamp}")
                 print(f"Twitter Handle: @{twitter_handle}")
                 print(f"Tweet ID: {new_tweet_id}")
+                print(f"Sentiment: {new_sentiment}")
                 print(f"Tweet Text: {new_tweet_text}")   
                 print(f"Tweet Hashtags: {list_to_string(new_tweet_hashtags)}")    
                 print(f"Keywords: {tweet_keywords}")
@@ -264,13 +307,13 @@ while True:
     except:
         print("Log error \n")
 
-    ## Update table in database ##
+    ## Update table in database if anything changed ##
     if database and (new_tweet_id > last_tweet_id or new_profile_photo != profile_photo or new_profile_banner != profile_banner):
-        row_query = f"INSERT INTO {table_name} (twitter_handle, tweet_id, hashtags, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('{twitter_handle}', '{format(new_tweet_id)}', '{new_tweet_hashtags}', '{format_tweet(new_tweet_text)}', '{format(tweet_keywords)}', '{regex_uppercase}', '{make_url()}', '{new_profile_photo}', '{new_profile_banner}', '{timestamp}');"
+        row_query = f"INSERT INTO {table_name} (twitter_handle, tweet_id, hashtags, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('{twitter_handle}', '{format(new_tweet_id)}', '{new_tweet_hashtags}', '{remove_quotes(new_tweet_text)}', '{format(tweet_keywords)}', '{regex_uppercase}', '{make_url()}', '{new_profile_photo}', '{new_profile_banner}', '{timestamp}');"
         try:
             new_row(row_query) 
         except:
-            print("Database not detected")     
+            print("Database error")
     
     ## Play sound if keyword found or image changed ##
     try:
