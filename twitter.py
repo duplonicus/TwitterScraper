@@ -23,6 +23,7 @@ parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
 parser.add_argument("username", nargs="?", default="unusual_whales") # Change default twitter account here
 parser.add_argument("--wordlist", nargs="?", action="store", default="keywords.txt") # Change default keyword list here
 parser.add_argument("--tablename", nargs="?", action="store", default="twitter") # Change default PostgreSQL table here
+parser.add_argument("--frequency", nargs="?", action="store", default=5) # Change default loop wait time here
 parser.add_argument('--noconsole', action="store_false", default=True)
 parser.add_argument('--nolog', action="store_false", default=True)
 parser.add_argument('--nobrowser', action="store_false", default=True)
@@ -39,6 +40,7 @@ play_sounds = args.nosounds
 database = args.nodb
 discord = args.nodiscord
 wordlist = args.wordlist
+loop_wait = int(args.frequency)
 
 # Get Twitter account from argument
 twitter_handle = args.username
@@ -338,4 +340,4 @@ while True:
     i += 1
         
     ## Wait 5 seconds ##
-    time.sleep(5)
+    time.sleep(loop_wait)
