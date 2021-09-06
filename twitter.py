@@ -1,3 +1,5 @@
+# TODO get full_text isntead of truncated text from tweets - possibly an issue with get_tweets() in pytwitterscraper module
+
 ## Modules ##
 from pytwitterscraper import TwitterScraper                 # Twitter scraper - no API key required
 import webbrowser                                           # Web browser
@@ -86,13 +88,12 @@ def list_to_string_spaces(s):
 
 # Remove special characters (used after converting regex result list to string)
 def remove_special_chars(regex_result):
-    regex_result.replace("\'", "").replace(" ", "").replace("[", "").replace("]", "").replace(",", " ")
-    return regex_result
+    return regex_result.replace("\'", "").replace(" ", "").replace("[", "").replace("]", "").replace(",", " ")
+    
 
 # Remove quotation marks that might break insert statements
 def remove_quotes(tweet_text):
-    tweet_text.replace('"','').replace("'", "")
-    return tweet_text
+    return tweet_text.replace('"','').replace("'", "")
 
 # Search keyword list and format
 def find_keywords(tweet_text):
@@ -168,7 +169,7 @@ try:
     # Check database for last_tweet_id and add a new row if not present
     try:
         if check_table(last_tweet_id, "tweet_id", table_name) == False:
-            last_tweet_query = f"INSERT INTO {table_name} (twitter_handle, tweet_id, hashtags, tweet_sentiment, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('{twitter_handle}', '{format(last_tweet_id)}', '{last_tweet_hashtags}', '{last_sentiment}','{remove_quotes(last_tweet_text)}', '{format(last_tweet_keywords)}', '{last_regex_uppercase}', '{make_url(last_tweet_id)}', '{profile_photo}', '{profile_banner}', '{timestamp}');"
+            last_tweet_query = f"INSERT INTO {table_name} (twitter_handle, tweet_id, hashtags, tweet_sentiment, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('{twitter_handle}', '{format(last_tweet_id)}', '{last_tweet_hashtags}', '{last_sentiment}','{last_tweet_text}', '{format(last_tweet_keywords)}', '{last_regex_uppercase}', '{make_url(last_tweet_id)}', '{profile_photo}', '{profile_banner}', '{timestamp}');"
             new_row(last_tweet_query)
     except:
         print("Database error")
@@ -198,7 +199,7 @@ while True:
         else:
             newest_tweet = 1
         # Get text from newest tweet
-        new_tweet_text = new_tweet_contents[newest_tweet]["text"]
+        new_tweet_text = remove_quotes(new_tweet_contents[newest_tweet]["text"])
         # Get hashtags from newest tweet
         new_tweet_hashtags = list_to_string(new_tweet_contents[newest_tweet]["hashtags"])
         # Find keywords in newest tweet text
@@ -240,7 +241,7 @@ while True:
         # Tweets
         if discord and new_tweet_id > last_tweet_id:
             webhook = DiscordWebhook(url=DISCORD_WEBHOOK_URL)
-            embed = DiscordEmbed(title=f'@{twitter_handle}', description=remove_quotes(new_tweet_text), color='03b2f8')
+            embed = DiscordEmbed(title=f'@{twitter_handle}', description=new_tweet_text, color='03b2f8')
             # Add fields to embed
             if tweet_keywords:
                 embed.add_embed_field(name='Keywords', value=tweet_keywords)
@@ -310,7 +311,7 @@ while True:
 
     ## Update table in database if anything changed ##
     if database and (new_tweet_id > last_tweet_id or new_profile_photo != profile_photo or new_profile_banner != profile_banner):
-        row_query = f"INSERT INTO {table_name} (twitter_handle, tweet_id, hashtags, tweet_sentiment, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('{twitter_handle}', '{format(new_tweet_id)}', '{new_tweet_hashtags}', '{new_sentiment}', '{remove_quotes(new_tweet_text)}', '{format(tweet_keywords)}', '{regex_uppercase}', '{make_url(last_tweet_id)}', '{new_profile_photo}', '{new_profile_banner}', '{timestamp}');"
+        row_query = f"INSERT INTO {table_name} (twitter_handle, tweet_id, hashtags, tweet_sentiment, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('{twitter_handle}', '{format(new_tweet_id)}', '{new_tweet_hashtags}', '{new_sentiment}', '{new_tweet_text}', '{format(tweet_keywords)}', '{regex_uppercase}', '{make_url(last_tweet_id)}', '{new_profile_photo}', '{new_profile_banner}', '{timestamp}');"
         try:
             new_row(row_query) 
         except:
