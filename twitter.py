@@ -7,7 +7,6 @@ import winsound                                             # Play Windows sound
 import sys                                                  # Read/write to files
 import argparse                                             # Argument parser
 import datetime                                             # Timestamp
-import nltk                                                 # Natural Language Tool Kit
 from nltk.sentiment import SentimentIntensityAnalyzer       # Sentiment analyzer
 from db_functions import *                                  # Database functions
 from discord_webhook import DiscordWebhook, DiscordEmbed    # Discord webhook
@@ -23,7 +22,7 @@ parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
 parser.add_argument("username", nargs="?", default="unusual_whales") # Change default twitter account here
 parser.add_argument("--wordlist", nargs="?", action="store", default="keywords.txt") # Change default keyword list here
 parser.add_argument("--tablename", nargs="?", action="store", default="twitter") # Change default PostgreSQL table here
-parser.add_argument("--frequency", nargs="?", action="store", default=5) # Change default loop wait time here
+parser.add_argument("--frequency", nargs="?", action="store", default=5) # Change default loop wait time in seconds here
 parser.add_argument('--noconsole', action="store_false", default=True)
 parser.add_argument('--nolog', action="store_false", default=True)
 parser.add_argument('--nobrowser', action="store_false", default=True)
@@ -129,7 +128,7 @@ def find_sentiment(tweet: str):
 
 # Create PostgreSQL table if it doesn't exist
 if database:  
-    table_query = f"CREATE TABLE {table_name} ({table_name}_pkey SERIAL PRIMARY KEY, twitter_handle TEXT, tweet_id NUMERIC, hashtags TEXT, tweet_text TEXT, keywords TEXT, uppercase TEXT, tweet_url TEXT, profile_photo_url TEXT, profile_banner_url TEXT, timestamp TEXT);" 
+    table_query = f"CREATE TABLE {table_name} ({table_name}_pkey SERIAL PRIMARY KEY, twitter_handle TEXT, tweet_id NUMERIC, hashtags TEXT, tweet_sentiment TEXT, tweet_text TEXT, keywords TEXT, uppercase TEXT, tweet_url TEXT, profile_photo_url TEXT, profile_banner_url TEXT, timestamp TEXT);" 
     try:
         create_table(table_name, table_query)
     except:
@@ -157,7 +156,7 @@ try:
     else:
         newer_tweet = 1
     # Get tweet text
-    last_tweet_text = list_to_string(last_tweet_contents[newer_tweet]["text"])
+    last_tweet_text = remove_quotes(list_to_string(last_tweet_contents[newer_tweet]["text"]))
     # Get tweet hashtags
     last_tweet_hashtags = list_to_string_spaces(last_tweet_contents[newer_tweet]["hashtags"])
     # Find keywords in tweet text
@@ -169,7 +168,7 @@ try:
     # Check database for last_tweet_id and add a new row if not present
     try:
         if check_table(last_tweet_id, "tweet_id", table_name) == False:
-            last_tweet_query = f"INSERT INTO {table_name} (twitter_handle, tweet_id, hashtags, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('{twitter_handle}', '{format(last_tweet_id)}', '{last_tweet_hashtags}', '{remove_quotes(last_tweet_text)}', '{format(last_tweet_keywords)}', '{last_regex_uppercase}', '{make_url(last_tweet_id)}', '{profile_photo}', '{profile_banner}', '{timestamp}');"
+            last_tweet_query = f"INSERT INTO {table_name} (twitter_handle, tweet_id, hashtags, tweet_sentiment, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('{twitter_handle}', '{format(last_tweet_id)}', '{last_tweet_hashtags}', '{last_sentiment}','{remove_quotes(last_tweet_text)}', '{format(last_tweet_keywords)}', '{last_regex_uppercase}', '{make_url(last_tweet_id)}', '{profile_photo}', '{profile_banner}', '{timestamp}');"
             new_row(last_tweet_query)
     except:
         print("Database error")
@@ -311,7 +310,7 @@ while True:
 
     ## Update table in database if anything changed ##
     if database and (new_tweet_id > last_tweet_id or new_profile_photo != profile_photo or new_profile_banner != profile_banner):
-        row_query = f"INSERT INTO {table_name} (twitter_handle, tweet_id, hashtags, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('{twitter_handle}', '{format(new_tweet_id)}', '{new_tweet_hashtags}', '{remove_quotes(new_tweet_text)}', '{format(tweet_keywords)}', '{regex_uppercase}', '{make_url()}', '{new_profile_photo}', '{new_profile_banner}', '{timestamp}');"
+        row_query = f"INSERT INTO {table_name} (twitter_handle, tweet_id, hashtags, tweet_sentiment, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('{twitter_handle}', '{format(new_tweet_id)}', '{new_tweet_hashtags}', '{new_sentiment}', '{remove_quotes(new_tweet_text)}', '{format(tweet_keywords)}', '{regex_uppercase}', '{make_url()}', '{new_profile_photo}', '{new_profile_banner}', '{timestamp}');"
         try:
             new_row(row_query) 
         except:
