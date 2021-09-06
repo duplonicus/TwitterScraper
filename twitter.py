@@ -91,7 +91,7 @@ def remove_special_chars(regex_result):
 
 # Remove quotation marks that might break insert statements
 def remove_quotes(tweet_text):
-    tweet_text.replace("'", "").replace("\"", "")
+    tweet_text.replace('"','').replace("'", "")
     return tweet_text
 
 # Search keyword list and format
@@ -148,8 +148,8 @@ except:
 # Get last 2 tweets and compare IDs to filter up to 1 pinned tweet (a pinned tweet may not be the newest tweet)
 try:
     last_tweet_contents = tw.get_tweets(twitter_id, count=2).contents
-    last_tweet_id = last_tweet_contents[0]["id"]
-    last_tweet_id_2 = last_tweet_contents[1]["id"]
+    last_tweet_id = last_tweet_contents[1]["id"]
+    last_tweet_id_2 = last_tweet_contents[0]["id"]
     if last_tweet_id_2 > last_tweet_id:
         last_tweet_id = last_tweet_id_2
         newer_tweet = 0
@@ -310,7 +310,7 @@ while True:
 
     ## Update table in database if anything changed ##
     if database and (new_tweet_id > last_tweet_id or new_profile_photo != profile_photo or new_profile_banner != profile_banner):
-        row_query = f"INSERT INTO {table_name} (twitter_handle, tweet_id, hashtags, tweet_sentiment, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('{twitter_handle}', '{format(new_tweet_id)}', '{new_tweet_hashtags}', '{new_sentiment}', '{remove_quotes(new_tweet_text)}', '{format(tweet_keywords)}', '{regex_uppercase}', '{make_url()}', '{new_profile_photo}', '{new_profile_banner}', '{timestamp}');"
+        row_query = f"INSERT INTO {table_name} (twitter_handle, tweet_id, hashtags, tweet_sentiment, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('{twitter_handle}', '{format(new_tweet_id)}', '{new_tweet_hashtags}', '{new_sentiment}', '{remove_quotes(new_tweet_text)}', '{format(tweet_keywords)}', '{regex_uppercase}', '{make_url(last_tweet_id)}', '{new_profile_photo}', '{new_profile_banner}', '{timestamp}');"
         try:
             new_row(row_query) 
         except:
