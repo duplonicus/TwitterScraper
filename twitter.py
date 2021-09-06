@@ -10,7 +10,7 @@ import datetime                                             # Timestamp
 from nltk.sentiment import SentimentIntensityAnalyzer       # Sentiment analyzer
 from db_functions import *                                  # Database functions
 from discord_webhook import DiscordWebhook, DiscordEmbed    # Discord webhook
-from secrets import DISCORD_WEBHOOK_URL                     # Contains webhook URL for Discord channel
+from secrets import DISCORD_WEBHOOK_URL                     # Webhook URL for Discord channel
 
 ## Variables ##
 
