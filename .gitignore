@@ -13,3 +13,6 @@ dbot.py
 .env
 test.txt
 nltk-test.py
+.dockerignore
+Dockerfile
+config.yml

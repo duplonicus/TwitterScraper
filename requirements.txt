@@ -1,5 +1,5 @@
 pytwitterscraper
-psycopg2
+psycopg2==2.8.6
 config
 discord_webhook
 nltk
