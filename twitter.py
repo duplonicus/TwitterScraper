@@ -1,6 +1,6 @@
 # TODO get full_text isntead of truncated text from tweets - possibly an issue with get_tweets() in pytwitterscraper module
 # TODO escape single quotes in input statement instead of removing them
-# TODO better expceptions
+# TODO better expceptions and error logging
 # TODO add required argument types to arguments
 
 ## Modules ##
