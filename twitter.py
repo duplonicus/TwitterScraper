@@ -1,4 +1,7 @@
 # TODO get full_text isntead of truncated text from tweets - possibly an issue with get_tweets() in pytwitterscraper module
+# TODO escape single quotes in input statement instead of removing them
+# TODO better expceptions
+# TODO add required argument types to arguments
 
 ## Modules ##
 from pytwitterscraper import TwitterScraper                 # Twitter scraper - no API key required
@@ -52,7 +55,7 @@ table_name = args.tablename
 # Create twitter scraper object
 tw = TwitterScraper()
 
-# Create sentiment alayzer object
+# Create sentiment analayzer object
 sia = SentimentIntensityAnalyzer()
 
 # Variables for loop
@@ -120,10 +123,13 @@ def make_url(tweet_id):
 
 # Find sentiment
 def find_sentiment(tweet: str):
-    if sia.polarity_scores(tweet)["compound"] > 0:
-        return "Positive"
+    score = sia.polarity_scores(tweet)["compound"]
+    if score == 0:
+        return f"Neutral ({score})"
+    elif score > 0:
+        return f"Positive ({score})"
     else:
-        return "Negative"
+        return f"Negative ({score})"
 
 ## Run once before looping ##
 
@@ -157,7 +163,7 @@ try:
     else:
         newer_tweet = 1
     # Get tweet text
-    last_tweet_text = remove_quotes(list_to_string(last_tweet_contents[newer_tweet]["text"]))
+    last_tweet_text = remove_quotes(last_tweet_contents[newer_tweet]["text"])
     # Get tweet hashtags
     last_tweet_hashtags = list_to_string_spaces(last_tweet_contents[newer_tweet]["hashtags"])
     # Find keywords in tweet text
