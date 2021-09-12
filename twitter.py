@@ -24,9 +24,9 @@ original_stdout = sys.stdout
 
 # Argument parser
 parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
-parser.add_argument("username", nargs="?", default="michaeljburry") # Change default twitter account here
+parser.add_argument("username", nargs="?", default="ryancohen") # Change default twitter account here
 parser.add_argument("--wordlist", nargs="?", action="store", default="keywords.txt") # Change default keyword list here
-parser.add_argument("--tablename", nargs="?", action="store", default="stocks") # Change default PostgreSQL table here
+parser.add_argument("--tablename", nargs="?", action="store", default="gme") # Change default PostgreSQL table here
 parser.add_argument("--frequency", nargs="?", action="store", default=5) # Change default loop wait time in seconds here
 parser.add_argument('--noconsole', action="store_false", default=True)
 parser.add_argument('--nolog', action="store_false", default=True)
@@ -171,7 +171,10 @@ try:
     # Get tweet hashtags
     last_tweet_hashtags = list_to_string_spaces(last_tweet_contents[newer_tweet]["hashtags"])
     # Get tweet image
-    last_tweet_image = last_tweet_contents[newer_tweet]["media"][0]["image_url"]
+    if last_tweet_contents[newer_tweet]["media"] != [] :
+        last_tweet_image = last_tweet_contents[newer_tweet]["media"][0]["image_url"]
+    else:
+        last_tweet_image = ''
     # Find keywords in tweet text
     last_tweet_keywords = find_keywords(last_tweet_text)
     # Find uppercase characters in tweet text
@@ -188,7 +191,7 @@ try:
 except:
     print("No tweets detected")
     print("Try again")
-    print(last_tweet_text)
+    print(last_tweet_contents)
     exit()
 
 
@@ -219,8 +222,11 @@ while True:
         new_tweet_text = remove_quotes(new_tweet_contents[newest_tweet]["text"])
         # Get hashtags from newest tweet
         new_tweet_hashtags = list_to_string(new_tweet_contents[newest_tweet]["hashtags"])
-
-        new_tweet_image = new_tweet_contents[newest_tweet]["media"][0]["image_url"]
+        # Get tweet image
+        if new_tweet_contents[newest_tweet]["media"] != [] :
+            new_tweet_image = new_tweet_contents[newest_tweet]["media"][0]["image_url"]
+        else:
+            new_tweet_image = ''
         # Find keywords in newest tweet text
         tweet_keywords  = find_keywords(new_tweet_text)
         # Find uppercase chars in newest tweet text
