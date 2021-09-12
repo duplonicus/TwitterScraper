@@ -26,7 +26,7 @@ original_stdout = sys.stdout
 parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
 parser.add_argument("username", nargs="?", default="ryancohen") # Change default twitter account here
 parser.add_argument("--wordlist", nargs="?", action="store", default="keywords.txt") # Change default keyword list here
-parser.add_argument("--tablename", nargs="?", action="store", default="gme") # Change default PostgreSQL table here
+parser.add_argument("--tablename", nargs="?", action="store", default="twitter") # Change default PostgreSQL table here
 parser.add_argument("--frequency", nargs="?", action="store", default=5) # Change default loop wait time in seconds here
 parser.add_argument('--noconsole', action="store_false", default=True)
 parser.add_argument('--nolog', action="store_false", default=True)
@@ -228,7 +228,7 @@ while True:
         else:
             new_tweet_image = ''
         # Find keywords in newest tweet text
-        tweet_keywords  = find_keywords(new_tweet_text)
+        tweet_keywords = find_keywords(new_tweet_text)
         # Find uppercase chars in newest tweet text
         regex_uppercase = find_uppercase(new_tweet_text)
         # Find sentiment
