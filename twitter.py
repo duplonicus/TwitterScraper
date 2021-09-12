@@ -24,9 +24,9 @@ original_stdout = sys.stdout
 
 # Argument parser
 parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
-parser.add_argument("username", nargs="?", default="unusual_whales") # Change default twitter account here
+parser.add_argument("username", nargs="?", default="michaeljburry") # Change default twitter account here
 parser.add_argument("--wordlist", nargs="?", action="store", default="keywords.txt") # Change default keyword list here
-parser.add_argument("--tablename", nargs="?", action="store", default="twitter") # Change default PostgreSQL table here
+parser.add_argument("--tablename", nargs="?", action="store", default="stocks") # Change default PostgreSQL table here
 parser.add_argument("--frequency", nargs="?", action="store", default=5) # Change default loop wait time in seconds here
 parser.add_argument('--noconsole', action="store_false", default=True)
 parser.add_argument('--nolog', action="store_false", default=True)
@@ -135,7 +135,7 @@ def find_sentiment(tweet: str):
 
 # Create PostgreSQL table if it doesn't exist
 if database:  
-    table_query = f"CREATE TABLE {table_name} ({table_name}_pkey SERIAL PRIMARY KEY, twitter_handle TEXT, tweet_id NUMERIC, hashtags TEXT, tweet_sentiment TEXT, tweet_text TEXT, keywords TEXT, uppercase TEXT, tweet_url TEXT, profile_photo_url TEXT, profile_banner_url TEXT, timestamp TEXT);" 
+    table_query = f"CREATE TABLE {table_name} ({table_name}_pkey SERIAL PRIMARY KEY, twitter_handle TEXT, tweet_id NUMERIC, hashtags TEXT, tweet_sentiment TEXT, tweet_text TEXT, tweet_image TEXT, keywords TEXT, uppercase TEXT, tweet_url TEXT, profile_photo_url TEXT, profile_banner_url TEXT, timestamp TEXT);" 
     try:
         create_table(table_name, table_query)
     except:
@@ -155,17 +155,23 @@ except:
 # Get last 2 tweets and compare IDs to filter up to 1 pinned tweet (a pinned tweet may not be the newest tweet)
 try:
     last_tweet_contents = tw.get_tweets(twitter_id, count=2).contents
-    last_tweet_id = last_tweet_contents[1]["id"]
-    last_tweet_id_2 = last_tweet_contents[0]["id"]
-    if last_tweet_id_2 > last_tweet_id:
-        last_tweet_id = last_tweet_id_2
-        newer_tweet = 0
+    if len(last_tweet_contents) > 1:
+        last_tweet_id = last_tweet_contents[1]["id"]
+        last_tweet_id_2 = last_tweet_contents[0]["id"]
+        if last_tweet_id_2 > last_tweet_id:
+            last_tweet_id = last_tweet_id_2
+            newer_tweet = 0
+        else:
+            newer_tweet = 1
     else:
-        newer_tweet = 1
+        last_tweet_id = last_tweet_contents[0]["id"]
+        newer_tweet = 0
     # Get tweet text
     last_tweet_text = remove_quotes(last_tweet_contents[newer_tweet]["text"])
     # Get tweet hashtags
     last_tweet_hashtags = list_to_string_spaces(last_tweet_contents[newer_tweet]["hashtags"])
+    # Get tweet image
+    last_tweet_image = last_tweet_contents[newer_tweet]["media"][0]["image_url"]
     # Find keywords in tweet text
     last_tweet_keywords = find_keywords(last_tweet_text)
     # Find uppercase characters in tweet text
@@ -175,13 +181,14 @@ try:
     # Check database for last_tweet_id and add a new row if not present
     try:
         if check_table(last_tweet_id, "tweet_id", table_name) == False:
-            last_tweet_query = f"INSERT INTO {table_name} (twitter_handle, tweet_id, hashtags, tweet_sentiment, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('{twitter_handle}', '{format(last_tweet_id)}', '{last_tweet_hashtags}', '{last_sentiment}','{last_tweet_text}', '{format(last_tweet_keywords)}', '{last_regex_uppercase}', '{make_url(last_tweet_id)}', '{profile_photo}', '{profile_banner}', '{timestamp}');"
+            last_tweet_query = f"INSERT INTO {table_name} (twitter_handle, tweet_id, hashtags, tweet_sentiment, tweet_text, tweet_image, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('{twitter_handle}', '{format(last_tweet_id)}', '{last_tweet_hashtags}', '{last_sentiment}','{last_tweet_text}', '{last_tweet_image}', '{format(last_tweet_keywords)}', '{last_regex_uppercase}', '{make_url(last_tweet_id)}', '{profile_photo}', '{profile_banner}', '{timestamp}');"
             new_row(last_tweet_query)
     except:
         print("Database error")
 except:
     print("No tweets detected")
     print("Try again")
+    print(last_tweet_text)
     exit()
 
 
@@ -197,17 +204,23 @@ while True:
     # Get 2 latest tweets and compare IDs to filter up to 1 pinned tweet
     try:
         new_tweet_contents = tw.get_tweets(twitter_id, count=2).contents
-        new_tweet_id = new_tweet_contents[1]["id"]
-        new_tweet_id_2 = new_tweet_contents[0]["id"]
-        if new_tweet_id_2 > new_tweet_id:
+        if len(new_tweet_contents) > 1:
+            new_tweet_id = new_tweet_contents[1]["id"]
+            new_tweet_id_2 = new_tweet_contents[0]["id"]
+            if new_tweet_id_2 > new_tweet_id:
+                newest_tweet = 0
+                new_tweet_id = new_tweet_id_2
+            else:
+                newest_tweet = 1
+        else: 
+            new_tweet_id = new_tweet_contents[0]["id"]
             newest_tweet = 0
-            new_tweet_id = new_tweet_id_2
-        else:
-            newest_tweet = 1
         # Get text from newest tweet
         new_tweet_text = remove_quotes(new_tweet_contents[newest_tweet]["text"])
         # Get hashtags from newest tweet
         new_tweet_hashtags = list_to_string(new_tweet_contents[newest_tweet]["hashtags"])
+
+        new_tweet_image = new_tweet_contents[newest_tweet]["media"][0]["image_url"]
         # Find keywords in newest tweet text
         tweet_keywords  = find_keywords(new_tweet_text)
         # Find uppercase chars in newest tweet text
@@ -239,7 +252,8 @@ while True:
         print(f"Tweet Hashtags: {list_to_string_spaces(new_tweet_hashtags)}")    
         print(f"Keywords: {tweet_keywords}")
         print(f"Upper Case: {regex_uppercase}")
-        print(f"Tweet URL: {make_url(new_tweet_id)} \n")
+        print(f"Tweet URL: {make_url(new_tweet_id)}")
+        print(f"Tweet Image: {new_tweet_image}  \n")
 
     ## Send changes to discord ##
     # Discord web hook URL defined in secrets.py
@@ -252,7 +266,9 @@ while True:
             if tweet_keywords:
                 embed.add_embed_field(name='Keywords', value=tweet_keywords)
             embed.add_embed_field(name='Sentiment', value=new_sentiment) 
-            embed.add_embed_field(name='URL', value=make_url(new_tweet_id))      
+            embed.add_embed_field(name='URL', value=make_url(new_tweet_id))  
+            if new_tweet_image != '':
+                  embed.set_image(url=new_tweet_image) 
             # Add embed object to webhook
             webhook.add_embed(embed)
             response = webhook.execute()
@@ -291,7 +307,8 @@ while True:
                 print(f"Tweet Hashtags: {list_to_string(new_tweet_hashtags)}")    
                 print(f"Keywords: {tweet_keywords}")
                 print(f"Upper Case: {regex_uppercase}")
-                print(f"Tweet URL: {make_url(new_tweet_id)} \n")
+                print(f"Tweet URL: {make_url(new_tweet_id)}")
+                print(f"Tweet Image: {new_tweet_image}  \n")
                 # Reset the standard output
                 sys.stdout = original_stdout
         # Photo
@@ -317,7 +334,7 @@ while True:
 
     ## Update table in database if anything changed ##
     if database and (new_tweet_id > last_tweet_id or new_profile_photo != profile_photo or new_profile_banner != profile_banner):
-        row_query = f"INSERT INTO {table_name} (twitter_handle, tweet_id, hashtags, tweet_sentiment, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('{twitter_handle}', '{format(new_tweet_id)}', '{new_tweet_hashtags}', '{new_sentiment}', '{new_tweet_text}', '{format(tweet_keywords)}', '{regex_uppercase}', '{make_url(last_tweet_id)}', '{new_profile_photo}', '{new_profile_banner}', '{timestamp}');"
+        row_query = f"INSERT INTO {table_name} (twitter_handle, tweet_id, hashtags, tweet_sentiment, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('{twitter_handle}', '{format(new_tweet_id)}', '{new_tweet_hashtags}', '{new_sentiment}', '{new_tweet_text}', '{new_tweet_image}', '{format(tweet_keywords)}', '{regex_uppercase}', '{make_url(last_tweet_id)}', '{new_profile_photo}', '{new_profile_banner}', '{timestamp}');"
         try:
             new_row(row_query) 
         except:
