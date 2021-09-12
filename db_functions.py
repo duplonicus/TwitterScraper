@@ -57,7 +57,7 @@ def check_table(value, column, table):
         # connect to the PostgreSQL server
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
-        # create twitter table if it doesn't already exist
+        # check table for value
         cur.execute(f"select exists(select {column} from {table} where {column} = {value})")
         value_exists = cur.fetchone()[0]
         # close communication with the PostgreSQL database server
