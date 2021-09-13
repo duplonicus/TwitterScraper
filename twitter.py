@@ -24,7 +24,7 @@ original_stdout = sys.stdout
 
 # Argument parser
 parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
-parser.add_argument("username", nargs="?", default="ryancohen") # Change default twitter account here
+parser.add_argument("username", nargs="?", default="unusual_whales") # Change default twitter account here
 parser.add_argument("--wordlist", nargs="?", action="store", default="keywords.txt") # Change default keyword list here
 parser.add_argument("--tablename", nargs="?", action="store", default="twitter") # Change default PostgreSQL table here
 parser.add_argument("--frequency", nargs="?", action="store", default=5) # Change default loop wait time in seconds here
@@ -92,7 +92,6 @@ def list_to_string_spaces(s):
 # Remove special characters (used after converting regex result list to string)
 def remove_special_chars(regex_result):
     return regex_result.replace("\'", "").replace(" ", "").replace("[", "").replace("]", "").replace(",", " ")
-    
 
 # Remove quotation marks that might break insert statements
 def remove_quotes(tweet_text):
@@ -155,7 +154,9 @@ except:
 # Get last 2 tweets and compare IDs to filter up to 1 pinned tweet (a pinned tweet may not be the newest tweet)
 try:
     last_tweet_contents = tw.get_tweets(twitter_id, count=2).contents
+    # Check if the profile has more than 1 tweet
     if len(last_tweet_contents) > 1:
+        # Compare last 2 tweets and use the newer one
         last_tweet_id = last_tweet_contents[1]["id"]
         last_tweet_id_2 = last_tweet_contents[0]["id"]
         if last_tweet_id_2 > last_tweet_id:
@@ -191,7 +192,7 @@ try:
 except:
     print("No tweets detected")
     print("Try again")
-    print(last_tweet_contents)
+    #print(last_tweet_contents) # Debugging
     exit()
 
 
@@ -207,7 +208,9 @@ while True:
     # Get 2 latest tweets and compare IDs to filter up to 1 pinned tweet
     try:
         new_tweet_contents = tw.get_tweets(twitter_id, count=2).contents
+        # Check if the profile has more than 1 tweet
         if len(new_tweet_contents) > 1:
+            # Compare last 2 tweets and use the newer one
             new_tweet_id = new_tweet_contents[1]["id"]
             new_tweet_id_2 = new_tweet_contents[0]["id"]
             if new_tweet_id_2 > new_tweet_id:
@@ -340,7 +343,7 @@ while True:
 
     ## Update table in database if anything changed ##
     if database and (new_tweet_id > last_tweet_id or new_profile_photo != profile_photo or new_profile_banner != profile_banner):
-        row_query = f"INSERT INTO {table_name} (twitter_handle, tweet_id, hashtags, tweet_sentiment, tweet_text, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('{twitter_handle}', '{format(new_tweet_id)}', '{new_tweet_hashtags}', '{new_sentiment}', '{new_tweet_text}', '{new_tweet_image}', '{format(tweet_keywords)}', '{regex_uppercase}', '{make_url(last_tweet_id)}', '{new_profile_photo}', '{new_profile_banner}', '{timestamp}');"
+        row_query = f"INSERT INTO {table_name} (twitter_handle, tweet_id, hashtags, tweet_sentiment, tweet_text, tweet_image, keywords, uppercase, tweet_url, profile_photo_url, profile_banner_url, timestamp) VALUES('{twitter_handle}', '{format(new_tweet_id)}', '{new_tweet_hashtags}', '{new_sentiment}', '{new_tweet_text}', '{new_tweet_image}', '{format(tweet_keywords)}', '{regex_uppercase}', '{make_url(last_tweet_id)}', '{new_profile_photo}', '{new_profile_banner}', '{timestamp}');"
         try:
             new_row(row_query) 
         except:
