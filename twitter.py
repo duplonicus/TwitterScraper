@@ -24,7 +24,7 @@ original_stdout = sys.stdout
 
 # Argument parser
 parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
-parser.add_argument("username", nargs="?", default="unusual_whales") # Change default twitter account here
+parser.add_argument("username", nargs="?", default="michaeljburry") # Change default twitter account here
 parser.add_argument("--wordlist", nargs="?", action="store", default="keywords.txt") # Change default keyword list here
 parser.add_argument("--tablename", nargs="?", action="store", default="twitter") # Change default PostgreSQL table here
 parser.add_argument("--frequency", nargs="?", action="store", default=5) # Change default loop wait time in seconds here
@@ -141,15 +141,19 @@ if database:
         print("Table error")
 
 # Get Twitter profile data
-try:
-    profile = tw.get_profile(name=twitter_handle).__dict__
-    profile_photo = profile["profileurl"]
-    profile_banner = profile["bannerurl"]
-    twitter_id = profile["id"]
-except:
-    print("Bad initial profile request")
-    print("Try again")
-    exit()
+while True:
+    try:
+        profile = tw.get_profile(name=twitter_handle).__dict__
+        if profile != None:
+            continue
+        profile_photo = profile["profileurl"]
+        profile_banner = profile["bannerurl"]
+        twitter_id = profile["id"]
+    except:
+        print("Bad initial profile request")
+        print("Waiting to try again...")
+        time.sleep(loop_wait)
+
 
 # Get last 2 tweets and compare IDs to filter up to 1 pinned tweet (a pinned tweet may not be the newest tweet)
 try:
