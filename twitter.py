@@ -141,18 +141,14 @@ if database:
         print("Table error")
 
 # Get Twitter profile data
-while True:
-    try:
-        profile = tw.get_profile(name=twitter_handle).__dict__
-        if profile != None:
-            continue
-        profile_photo = profile["profileurl"]
-        profile_banner = profile["bannerurl"]
-        twitter_id = profile["id"]
-    except:
-        print("Bad initial profile request")
-        print("Waiting to try again...")
-        time.sleep(loop_wait)
+try:
+    profile = tw.get_profile(name=twitter_handle).__dict__
+    profile_photo = profile["profileurl"]
+    profile_banner = profile["bannerurl"]
+    twitter_id = profile["id"]
+except:
+    print("Bad initial profile request")
+    print("Waiting to try again...")
 
 
 # Get last 2 tweets and compare IDs to filter up to 1 pinned tweet (a pinned tweet may not be the newest tweet)
